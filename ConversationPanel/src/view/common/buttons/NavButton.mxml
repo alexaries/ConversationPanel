@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   disabledAlpha="0.5" toolTip="{tips}" scaleY="{scaleX}"
+				   mouseOver="onMouseOver(event)" mouseOut="onMouseOut(event)" toolTipShow="group1_toolTipShowHandler(event)"
+				   mouseChildren="false" buttonMode="true" width="50" height="50"  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Tools;
+			import com.doer.common.tooltip.ToolTip;
+			import com.doer.resource.ResManager;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.core.IToolTip;
+			import mx.events.ResizeEvent;
+			import mx.events.ToolTipEvent;
+			import mx.managers.ToolTipManager;
+			
+			/**
+			 * 中间图标
+			 * **/
+			[Bindable]
+			public var icon:Object = null;
+			
+			[Bindable]
+			public var selectedBg:Object = null;
+			
+			[Bindable]
+			public var overBg:Object = null;
+			
+			[Bindable]
+			public var tipNums:Number = 0;
+			
+			private var _selected:Boolean = false;
+			
+			[Bindable]
+			public var groupName:String = null;
+			
+			[Bindable]
+			public var tips:String = null;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			/**
+			 * 是否被选中
+			 * **/
+			public function get selected():Boolean
+			{
+				return _selected;
+			}
+
+			/**
+			 * @private
+			 */
+			public function set selected(value:Boolean):void
+			{
+				_selected = value;
+				
+				overIcon.visible = false;
+			
+			}
+
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				if(!selected)
+				{
+					overIcon.visible = true;
+				}
+			
+			}
+			
+			protected function onMouseOut(event:MouseEvent):void
+			{
+				if(!selected)
+				{
+					overIcon.visible = false;
+				}
+				
+			}
+			
+			
+			protected function group1_toolTipShowHandler(event:ToolTipEvent):void
+			{
+				var p:Point = this.localToGlobal(new Point(0,0));
+				
+				event.toolTip.y = p.y - event.toolTip.height - 10;
+				event.toolTip.x = p.x + this.width / 2 - event.toolTip.width / 2;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect id="overIcon" visible="false" left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:BitmapFill source="{overBg}" fillMode="scale" smooth="true" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect id="selectedIcon" visible="{selected}"  left="0" right="0" top="0" bottom="0" >
+		<s:fill>
+			<s:BitmapFill source="{selectedBg}" fillMode="scale" smooth="true"   />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Image  source="{icon}" horizontalCenter="0" verticalCenter="0" smooth="true"  />
+	
+	<!--
+	<s:Rect left="2" right="2" top="2" bottom="2" >
+		<s:fill>
+			<s:BitmapFill source="{icon}" fillMode="scale" smooth="true"  />
+		</s:fill>
+	</s:Rect>
+	-->
+	
+	<s:Group width="18" height="18" top="0" right="0" visible="{tipNums != 0}">
+		
+		<s:Ellipse  left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0xff0000" />
+			</s:fill>
+		</s:Ellipse>
+		
+		<s:Label id="riseLabel" verticalAlign="middle" textAlign="center" fontSize="12" text="{tipNums > 99 ? 99 : tipNums}" verticalCenter="0" horizontalCenter="0" color="0xffffff" />
+		
+	</s:Group>
+	
+</s:Group>

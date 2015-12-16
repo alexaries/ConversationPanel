@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 mouseOver="onMouseOver(event)" mouseOut="onMouseOut(event)"
+		 width="100" height="100" buttonMode="true" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="on" />
+		<s:State name="off" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var icon:Object = null;
+			
+			[Bindable]
+			public var offIcon:Object = null;
+			
+			private var _isOff:Boolean = false;
+			
+			[Bindable]
+			public var overBg:Object = null;
+			
+			[Bindable]
+			public function get isOff():Boolean
+			{
+				return _isOff;
+			}
+
+			public function set isOff(value:Boolean):void
+			{
+				_isOff = value;
+				
+				if(value)
+					currentState = "off";
+				else
+					currentState = "on";
+				
+			}
+
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				background.visible = true;
+			}
+			
+			protected function onMouseOut(event:MouseEvent):void
+			{
+				background.visible = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect id="background" visible="false" left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:BitmapFill source="{overBg}" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup horizontalAlign="center" verticalAlign="bottom" horizontalCenter="0" verticalCenter="0">
+		<s:Image source="{icon}"  />
+		<s:Image visible="{isOff}" source="{offIcon}" includeIn="off" /> 
+	</s:HGroup>
+	
+	<s:Line right="0" xFrom="0" xTo="0" yFrom="0" yTo="40">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" />
+		</s:stroke>
+	</s:Line>
+	
+</s:Group>

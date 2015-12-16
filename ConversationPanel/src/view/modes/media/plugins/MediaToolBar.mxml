@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="50" xmlns:common="view.common.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import view.modes.media.MediaView;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			public var isMenuOpen:Boolean = false;
+			
+			/**
+			 * 锁定进度条
+			 * **/
+			private var isProgressLock:Boolean = false;
+			
+			/**
+			 * 多媒体长度
+			 * **/
+			private var duration:Number = 0;
+			
+			private var _isPlaying:Boolean = false;
+			
+			public function get isPlaying():Boolean
+			{
+				return _isPlaying;
+			}
+
+			public function set isPlaying(value:Boolean):void
+			{
+				_isPlaying = value;
+				
+				btnPlay.selected = value;
+				
+			}
+
+			protected function onBtnMenueHandler(event:MouseEvent):void
+			{
+				isMenuOpen = !isMenuOpen;
+			}
+			
+			/**
+			 * 播放完成
+			 * **/
+			public function onComplete():void
+			{
+				btnPlay.selected = false;
+				
+				setMediaTime(0,duration);
+				
+			}
+			
+			/**
+			 * 设置多媒体时间
+			 * **/
+			public function setMediaTime(time:Number,duration:Number):void
+			{
+				this.duration = duration;
+			
+				var ts:int = time / 60;
+				var tm:int = time % 60;
+				var tts:String = ts > 9 ? String(ts) : ("0" + ts);
+				var ttm:String = tm > 9 ? String(tm) : ("0" + tm);
+				
+				timeLabel.text = tts + " : " + ttm;
+				
+				var ds:int = duration / 60;
+				var dm:int = duration % 60;
+				var tds:String = ds > 9 ? String(ds) : ("0" + ds);
+				var tdm:String = dm > 9 ? String(dm) : ("0" + dm);
+				
+				durationLabel.text = tds + " : " + tdm;
+				
+				if(!isProgressLock)
+					timeProgress.value = timeProgress.maximum * time / duration;
+				
+			}
+			
+			private var curTarget:String = null;
+			
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				isProgressLock = true;
+				
+				curTarget = event.target.name;
+				
+				stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			}
+			
+			protected function onMouseUp(event:MouseEvent):void
+			{
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				
+				isProgressLock = false;
+				
+				if(curTarget == "thumb" && ComplexConf.participantType == NebulaParticipantType.CHARGE)
+				{
+					setMediaTime(duration * timeProgress.value / timeProgress.maximum, duration);
+					
+					(this.parent as MediaView).seek(duration * timeProgress.value / timeProgress.maximum);
+					
+				}
+				
+			}
+			
+			protected function onValueChange(event:Event):void
+			{
+				if(curTarget != "thumb" && ComplexConf.participantType == NebulaParticipantType.CHARGE)
+				{
+					setMediaTime(duration * timeProgress.value / timeProgress.maximum, duration);
+					
+					(this.parent as MediaView).seek(duration * timeProgress.value / timeProgress.maximum);
+				
+				}
+
+			}
+			
+			protected function onBtnPlayHandler(event:MouseEvent):void
+			{
+				
+				btnPlay.selected = !btnPlay.selected;
+				
+				if(btnPlay.selected)
+					(this.parent as MediaView).play();
+				else
+					(this.parent as MediaView).pause();
+				
+			}
+			
+			protected function onBtnMinHandler(event:MouseEvent):void
+			{
+				(this.parent as MediaView).setSizeMin();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Image source="{resManager.getBitmap('mediaToolBackground')}" scaleMode="stretch" left="0" right="0" top="0" bottom="0"/>
+	
+	<s:HGroup id="tool1" verticalCenter="0" gap="15" verticalAlign="middle" horizontalAlign="center" left="20">
+		
+		<buttons:ImageButton id="btnPlay"  click="onBtnPlayHandler(event)" normalIcon="{resManager.getBitmap('mediaButtonPlay')}"
+						  selectedIcon="{resManager.getBitmap('mediaButtonPause')}" width="32" height="41"   />
+
+		<s:Label id="timeLabel" height="100%" left="39" width="85" color="#FFFFFF" fontSize="16" text="00 : 00"
+				 textAlign="center" verticalAlign="middle"/>
+		
+	</s:HGroup>
+	
+	
+	
+	<s:HSlider id="timeProgress" mouseDown="onMouseDown(event)" change="onValueChange(event)" buttonMode="true" left="155" right="190" maximum="10000" verticalCenter="0" skinClass="skins.media.MediaBar" showDataTip="false" />
+	
+	<s:HGroup id="tool2" verticalCenter="0" gap="15" verticalAlign="middle" horizontalAlign="center" right="20">
+		
+		<s:Label id="durationLabel" left="40" width="85" height="100%" color="#FFFFFF" fontSize="16" text="00 : 00"
+				 textAlign="center" verticalAlign="middle"/>
+	
+		<buttons:NavButton overBg="{resManager.getBitmap('commonTextLayerOverbg')}"  click="onBtnMinHandler(event)"
+						  selectedBg="{resManager.getBitmap('commonTextLayerOverbg')}"
+						  icon="{resManager.getBitmap('mediaButtonMin1')}" width="60" height="60"   />
+			
+	</s:HGroup>
+	
+	<s:filters>
+		
+		<s:GlowFilter color="0x000000" blurX="5" blurY="5" alpha="0.5" strength="2" >
+			
+		</s:GlowFilter>
+		
+	</s:filters>
+	
+</s:Group>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<colors>
+	
+	<!-- 所有label颜色  -->
+	<labelColor>0xffffff</labelColor>
+	
+	<!-- toolTip配色开始-->
+	<toolTipBackground>0x79cded</toolTipBackground>
+	<toolTipBorder>0x79cded</toolTipBorder>
+	<toolTipLabel>0x393939</toolTipLabel>
+	<!-- toolTip配色结束 -->
+	
+</colors>

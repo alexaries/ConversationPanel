@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="50" xmlns:common="view.common.*" xmlns:plugins="view.modes.courseware.plugins.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.resource.ResManager;
+			
+			import mx.collections.ArrayCollection;
+			
+			import spark.events.IndexChangeEvent;
+			
+			private const minSize:Number = 0.25;
+			
+			private const maxSize:Number = 1.5;
+			
+			[Bindable]
+			private var comboxList:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var isMenuOpen:Boolean = false;
+			
+			[Bindable]
+			public var isUse:Boolean = false;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			
+			/**
+			 * 设置当前显示的页数
+			 * **/
+			public function setCurpage(page:int):void
+			{
+				for(var i:int = 0; i < comboxList.length; i ++)
+				{
+					var p:int = Number(comboxList.getItemAt(i).name);
+				
+					if(p == page)
+					{
+						pageBox.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			
+			/**
+			 * 设置页数
+			 * @param maxPage ： 最大页数
+			 * **/
+			public function setPages(pages:Array,curPage:int):void
+			{
+				var arr:Array = new Array();
+				
+				for(var i:int = 0; i < pages.length; i ++)
+				{
+					arr.push({
+						
+						name : pages[i],
+						label : "第" + pages[i] + "页"
+						
+					});
+				}
+				
+				comboxList = new ArrayCollection(arr);
+				
+				pageBox.selectedIndex = curPage - 1;
+				
+			}
+			
+			/**
+			 * 切换拉伸方案
+			 * **/
+			public function onChangeScaleMode():void
+			{
+				(this.parent as CoursewareView).onChangeScaleMode();
+				
+				sizeSlider.value = 50;
+				sizeLabel.text = "100%";
+				
+			}
+			
+			protected function onMenuHandler(event:MouseEvent):void
+			{
+				isMenuOpen = !isMenuOpen;
+			}
+			
+			protected function onBtnPreHandler(event:MouseEvent):void
+			{
+				(this.parent as CoursewareView).onPrePage();
+				
+			}
+			
+			protected function onBtnNextHandler(event:MouseEvent):void
+			{
+				(this.parent as CoursewareView).onNextPage();
+				
+			}
+			
+			protected function onPageBoxHandler(event:IndexChangeEvent):void
+			{
+			
+				(this.parent as CoursewareView).onPage(int(pageBox.selectedItem.name),0);
+			}
+			
+			protected function onSizeChangeHandler(event:Event):void
+			{
+				var dis:Number = maxSize - minSize;
+				
+				var size:Number = sizeSlider.value / sizeSlider.maximum * dis + minSize;
+				
+				sizeLabel.text = Math.round(size * 100) + "%";
+				
+				(this.parent as CoursewareView).scale(size);
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Image width="100%" height="100%"  scaleMode="stretch"  source="@Embed('assets/course/topbar_bg.png')"/>
+	
+	<s:HGroup verticalAlign="middle" gap="15" paddingLeft="5" >
+		
+		<buttons:NavButton enabled="{isUse}" id="btnPre" icon="@Embed('assets/course/topbar_pre1.png')" click="onBtnPreHandler(event)"  />
+		
+		<s:ComboBox enabled="{isUse}"  id="pageBox" width="65" borderColor="0xcccccc" change="onPageBoxHandler(event)"
+					dataProvider="{comboxList}" dropShadowVisible="false" focusEnabled="false"
+					selectedIndex="0" />
+
+		<buttons:NavButton enabled="{isUse}" id="btnNext" icon="@Embed('assets/course/topbar_next1.png')" click="onBtnNextHandler(event)"  />
+		
+		<s:Label id="sizeLabel" width="46" color="#FFFFFF" fontSize="14" text="100%"/>
+		
+	</s:HGroup>  
+	
+	<s:HSlider id="sizeSlider" left="280" right="120" change="onSizeChangeHandler(event)"
+			   focusEnabled="false" maximum="100" showDataTip="false"
+			   skinClass="skins.course.HSliderSkin" value="50" verticalCenter="0"/>
+	
+	
+	<plugins:ToolbarStatue id="sizeStatue" width="72" height="26" verticalCenter="0" right="5" />
+	
+	<s:filters>
+		
+		<s:GlowFilter color="0x000000" blurX="5" blurY="5" alpha="0.5" strength="2" >
+			
+		</s:GlowFilter>
+		
+	</s:filters>
+	
+</s:Group>

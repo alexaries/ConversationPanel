@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  skinClass="skins.media.bar.HSliderTrack"
+		  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			private var _value:Number = 0;
+			
+			[Bindable]
+			public function get value():Number
+			{
+				return _value;
+			}
+
+			public function set value(value:Number):void
+			{
+				_value = value;
+				
+				dispatchEvent(new Event(Event.CHANGE));
+				
+			}
+		
+			[Bindable(event="change")]
+			public function getValue():Number
+			{
+				return value;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+</s:Button>

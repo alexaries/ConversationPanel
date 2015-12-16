@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:common="view.common.*"
+					xmlns:buttons="view.common.buttons.*"
+					width="120" height="120" implements="com.doer.modes.media.interfaces.IMediaCtr">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.media.MediaController;
+			import com.doer.modes.media.player.VodPlayer;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.complex.MediaCtrlType;
+			
+			import mx.events.FlexEvent;
+			
+			
+			private var duration:Number = 0;
+			
+			[Bindable]
+			private var player:VodPlayer = null;
+			
+			override public function invalidate():void
+			{
+				var myController:MediaController = controller as MediaController;
+				
+				player = myController.player;
+				
+				player.setController(this);
+				
+			}
+			
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				content.enabled = participantType == NebulaParticipantType.CHARGE;
+			}
+			
+			
+			
+			public function onMediaTime(time:Number,duration:Number):void
+			{
+				this.duration = duration;
+				
+				var pd:Number = int(duration / 60)
+				var md:Number = Math.round(duration % 60);
+				
+				var pt:Number = int(time / 60)
+				var mt:Number = Math.round(time % 60);
+				
+			}
+			
+			public function onComplete():void
+			{
+				onMediaTime(0,duration);
+			}
+			
+			protected function onBtnPlayHandler(event:MouseEvent):void
+			{
+				var myController:MediaController = controller as MediaController;
+				
+				if(myController.player.ctrType == MediaCtrlType.PLAY)
+					myController.pause();
+				else
+					myController.play();
+			}
+			
+			protected function onBtnMaxHandler(event:MouseEvent):void
+			{
+				(controller as MediaController).setSizeMax();
+			}	
+			
+			override public function onDestroy():void
+			{
+				player = null;
+			}
+			
+			private function getTimeStr(num:Number):String
+			{
+				if(num < 10)
+					return "0" + num;
+				
+				return String(num);
+			}
+			
+			protected function onBtnCloseHandler(event:MouseEvent):void
+			{
+				
+				(controller as MediaController).cancelMinMode();
+				
+				
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group left="0" right="0" top="0" bottom="0" mouseDown="onStartDrag(event)">
+		
+		<s:Rect left="0" right="0" top="0" bottom="0" radiusX="4" radiusY="4">
+			
+			<s:fill>
+				<s:BitmapFill source="@Embed('assets/media/icon_min_media_bg.png')"/>
+			</s:fill>
+			
+		</s:Rect>
+		
+		<s:Line top="30" xFrom="0" xTo="{this.width}">
+			
+			<s:stroke>
+				<s:SolidColorStroke alpha="0.5" color="0xffffff" weight="1"/>
+			</s:stroke>
+			
+		</s:Line>
+		
+	</s:Group>
+	
+	<s:Group id="content" width="100%" height="100%" disabledAlpha="1">
+		
+		<buttons:ImageButton id="btnPlay" bottom="20" width="60" height="60"
+							 click="onBtnPlayHandler(event)" horizontalCenter="0"
+							 normalIcon="@Embed('assets/media/icon_min_media_play.png')"
+							 selected="{player.ctrType == MediaCtrlType.PLAY}"
+							 selectedIcon="@Embed('assets/media/icon_min_media_pause.png')"/>
+		
+		
+		<buttons:ImageButton left="5" top="5" width="20" height="20" click="onBtnMaxHandler(event)"
+							 normalIcon="@Embed('assets/media/icon_media_max.png')"
+							 selectedIcon="@Embed('assets/media/icon_media_max.png')"/>
+		
+		<buttons:ImageButton right="5" top="6" width="18" height="18"
+							 click="onBtnCloseHandler(event)"
+							 normalIcon="@Embed('assets/media/icon_media_min_close.png')"
+							 selectedIcon="@Embed('assets/media/icon_media_min_close.png')"/>
+	</s:Group>
+	
+	
+	<common:filters>
+		
+		<s:GlowFilter alpha="0.5" blurX="5" blurY="5" color="0x000000" strength="2">
+			
+		</s:GlowFilter>
+		
+	</common:filters>
+	
+	
+	
+</common:ContentView>

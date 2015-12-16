@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="{label.width + 15}" height="{label.height + 15}" backgroundAlpha="0.3"
+				   backgroundColor="#000000" borderVisible="false" cornerRadius="4">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<s:Label id="label" width="80" height="15" color="#FFFFFF" fontSize="14" horizontalCenter="0" maxDisplayedLines="1"
+			 text="源朝二中" textAlign="center" verticalAlign="middle" verticalCenter="0"/>
+	
+</s:BorderContainer>

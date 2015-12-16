@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="60">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.metaedu.client.messages.nebula.NebulaFileUsingType;
+			
+			import mx.collections.ArrayCollection;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import view.modes.skydrive.SkyDriveView;
+			
+			public var usingType:int = -1;
+			
+			/****
+			 * combox数据
+			 * **/
+			[Bindable]
+			private var comboxData:ArrayCollection = new ArrayCollection([
+				
+				{label : "全部",id : -1},
+				{label : "图片",id : NebulaFileUsingType.PICTURE},
+				{label : "文档",id : NebulaFileUsingType.DOCUMENT},
+				{label : "视频",id : NebulaFileUsingType.VIDEO},
+				{label : "音频",id : NebulaFileUsingType.AUDIO}
+				
+			]);
+			
+			public function setUsingType(usingType:int):void
+			{
+				
+				this.usingType = usingType;
+				
+				for(var i:int = 0; i < comboxData.length; i ++)
+				{
+					if(comboxData.getItemAt(i).id == usingType)
+					{
+						combox.selectedIndex = i;
+						break;
+					}
+						
+				}
+			}
+			
+			protected function onChangeHandler(event:IndexChangeEvent):void
+			{
+				usingType = combox.selectedItem.id;
+				
+				(this.parent as SkyDriveView).refreshSkyDriveContent();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Label text="查看：" verticalCenter="0" left="15" color="0x4a4b4c" />
+	
+	<s:ComboBox id="combox" change="onChangeHandler(event)" dataProvider="{comboxData}" selectedIndex="0" left="60" width="75" verticalCenter="0"/>
+	
+	<s:Image id="btnRefresh" left="145" buttonMode="true" toolTip="刷新网盘" source="@Embed('assets/share/icon_refresh.png')" verticalCenter="0"/>
+	
+	<s:VGroup id="btnBack" buttonMode="true" right="80" gap="0" horizontalAlign="center" verticalAlign="middle"
+			  verticalCenter="0">
+		
+		<s:Image source="@Embed('assets/skydrive/icon_back.png')" />
+		
+		<s:Label text="返回上一级" color="0x4a4b4c" />
+		
+	</s:VGroup>
+	
+	<s:Line right="70" xFrom="0" xTo="0" yFrom="0" yTo="60">
+		<s:stroke>
+			<s:SolidColorStroke color="0x4a4b4c" alpha="0.3" />
+		</s:stroke>
+	</s:Line>
+	
+	<s:VGroup id="btnUpload" buttonMode="true" right="15" gap="0" horizontalAlign="center" verticalAlign="middle"
+			  verticalCenter="0">
+		
+		<s:Image source="@Embed('assets/skydrive/icon_upload.png')" />
+		
+		<s:Label text="文件上传" color="0x4a4b4c" />
+		
+	</s:VGroup>
+	
+	<s:Line bottom="0" xFrom="0" xTo="{this.width}" yFrom="0" yTo="0">
+		<s:stroke>
+			<s:SolidColorStroke color="0x4a4b4c" alpha="0.3" />
+		</s:stroke>
+	</s:Line>
+	
+</s:Group>

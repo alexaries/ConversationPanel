@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"  implements="com.doer.interfaces.IView,com.doer.common.interfaces.IVDelegate"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"  xmlns:common="view.common.*" disabledAlpha="1"
+		 left="0" right="0" top="0" bottom="0"  xmlns:text="view.common.text.*" 
+		 mouseOver="onMouseOver()" mouseOut="onMouseOut()" xmlns:blackbord="view.modes.blackbord.*" xmlns:tools="view.modes.blackbord.tools.*" 
+		 >
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Delegation;
+			import com.doer.common.mouse.MouseFactory;
+			import com.doer.common.mouse.style.EraserMouseStyle;
+			import com.doer.config.ComplexConf;
+			import com.doer.interfaces.IController;
+			import com.doer.meta.MetaCanvas;
+			import com.doer.meta.data.PaintInfo;
+			import com.doer.meta.paint.PaintStyle;
+			import com.doer.meta.paint.ShapeStyle;
+			import com.doer.meta.shape.ShapeData;
+			import com.doer.meta.utils.MetaPaintEvent;
+			import com.doer.modes.blackbord.BlackbordController;
+			import com.doer.modes.blackbord.BlackbordMode;
+			import com.doer.resource.ResManager;
+			import com.greensock.TweenMax;
+			import com.metaedu.client.log.LogPak;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import flash.utils.clearTimeout;
+			import flash.utils.setInterval;
+			import flash.utils.setTimeout;
+			
+			import mx.controls.Text;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.primitives.Rect;
+			
+			import view.common.text.TextCompent;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			public var canvas:MetaCanvas = null;
+			
+			public var delegation:Delegation = null;
+			
+			override public function invalidate():void
+			{
+				canvas = new MetaCanvas(new Rectangle(0,0,this.width,this.height));
+				
+				ui.addChild(canvas);
+				
+				delegation.addDelegate(this,controller as BlackbordController); //添加绘图委托
+				
+				canvas.showArea((controller as BlackbordController).blackbordMode.showX * canvas.getShowArea().height);
+				
+				setNotch();
+				
+				super.invalidate();
+			}
+			
+			override public function onDestroy():void
+			{
+				if(delegation != null)
+					delegation.removeDelegate(); //移除委托
+			
+				delegation = null;
+				
+				if(canvas != null)
+				{
+					canvas.onDestroy();
+					
+					ui.removeChild(canvas);
+					
+					canvas = null;
+					
+				}
+				
+				super.onDestroy();
+				
+			}
+			
+			
+			protected function onUiResize(event:ResizeEvent):void
+			{
+				if(canvas != null)
+				{
+					var rect:Rectangle = canvas.getShowArea();
+					
+					var x:Number = rect.x / rect.width;
+					
+					canvas.setShowRect(new Rectangle(0,0,ui.width,ui.height));
+					
+					canvas.showArea(x * ui.width);
+					
+					setNotch();
+				}
+				
+			}
+			
+		
+			public function getCanvas():MetaCanvas
+			{
+				return canvas;
+			}
+			
+			public function getLayer():TextLayer
+			{
+				return textLayer;
+			}
+			
+			public function readyDrag():void
+			{
+				this.buttonMode = true;
+				
+				this.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+			
+				this.ruler.visible = true;
+				
+			}
+			
+			private var p1:Point = null;
+			
+			private function onMouseDown(e:MouseEvent):void
+			{
+				
+				if(e.target == ruler.ruler) return;
+				
+				if(!textLayer.visible)
+				{
+					p1 = new Point(this.mouseX,this.mouseY);
+					
+					addEventListener(Event.ENTER_FRAME,onFrame);
+					stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				}
+			}
+			
+			private function onFrame(e:Event):void
+			{
+				var dis:int = Point.distance(p1,new Point(this.mouseX,this.mouseY));
+				
+				if(mouseX > p1.x)
+					drawDistance(-1 * dis);
+				else
+					drawDistance(dis);
+				
+				p1 = new Point(this.mouseX,this.mouseY);
+			}
+			
+			private function onMouseUp(e:MouseEvent):void
+			{
+				removeEffect();
+				
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				removeEventListener(Event.ENTER_FRAME,onFrame);
+				
+				var rect:Rectangle = canvas.getShowArea();
+				
+				(controller as BlackbordController).sendMoveInfo(rect.x / rect.height);
+				
+			}
+			
+			private function drawDistance(distance:Number):void
+			{
+				var rect:Rectangle = canvas.getShowArea();
+				
+				
+				if(rect.x + distance >= 0 )
+				{
+					canvas.showArea(rect.x + distance);
+					
+					if(distance > 0 && bordGroup.backScroller.horizontalScrollBar.value >= bordGroup.backScroller.horizontalScrollBar.maximum)
+						bordGroup.backScroller.horizontalScrollBar.value = 0;
+					
+					if(distance < 0 && bordGroup.backScroller.horizontalScrollBar.value <= 0)
+						bordGroup.backScroller.horizontalScrollBar.value = bordGroup.backScroller.horizontalScrollBar.maximum;
+					
+					bordGroup.backScroller.horizontalScrollBar.value += distance;
+					
+					removeEffect();
+					
+				}else
+				{
+					canvas.showArea(0);
+					
+					bordGroup.backScroller.horizontalScrollBar.value = 0;
+					
+					addEffect();
+				}
+
+				setNotch();
+			}
+			
+			private function addEffect():void
+			{
+				if(bordGroup.attention.alpha == 0)
+					TweenMax.to(bordGroup.attention,0.2,{alpha : 1});
+			}
+			
+			public function showPaintArea(x:Number,isSend:Boolean = false):void
+			{
+				canvas.showArea(x);
+				
+				if(isSend)
+				{
+					var rect:Rectangle = canvas.getShowArea();
+					
+					(controller as BlackbordController).sendMoveInfo(rect.x / rect.height);
+				}					
+			}
+			
+			public function setNotch():void
+			{
+				ruler.setNotch(canvas.getShowArea(),canvas.getCanvasBounds());
+				
+			}
+			
+			private function removeEffect():void
+			{
+				if(bordGroup.attention.alpha != 0)
+				TweenMax.to(bordGroup.attention,0.2,{alpha : 0});
+			}
+			
+			public function clearDrag():void
+			{
+				this.buttonMode = false;
+				
+				this.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+			
+				if(stage.hasEventListener(MouseEvent.MOUSE_UP))
+					stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				
+				removeEffect();
+			}
+			
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				this.enabled = participantType != NebulaParticipantType.VISITOR;
+			}
+			
+			private var rTid:int = -1;
+			
+			private function onMouseOver():void
+			{
+				if(canvas.active)
+				{
+					if(delegation.currentPaintStyle.shapeStyle == ShapeStyle.POINTS)
+					{
+						MouseFactory.getInstance().show('pen',10);
+						
+					}else if(delegation.currentPaintStyle.shapeStyle == ShapeStyle.ERASER)
+					{
+						MouseFactory.getInstance().show('eraser',delegation.currentPaintStyle.thick,delegation.currentPaintStyle.thick,
+							new Point(-1 * delegation.currentPaintStyle.thick / 2,-1 * delegation.currentPaintStyle.thick / 2));
+						
+					}
+				}
+				
+				if(rTid != -1)
+				{
+					clearTimeout(rTid);
+					rTid = -1;
+				}
+				
+				ruler.visible = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				MouseFactory.getInstance().hide();
+				
+				if(rTid == -1)
+					rTid = setTimeout(function():void{
+						ruler.visible = false;
+						rTid = -1;
+					},5000);
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<tools:BlackbordGroup id="bordGroup" left="0" right="0" top="0" bottom="0" />
+
+	<mx:UIComponent id="ui" left="0" right="0" top="0" bottom="0" resize="onUiResize(event)" />
+	
+	<tools:BlackbordRuler id="ruler" width="{this.width - 40 > 750 ? 750 : this.width - 40}" horizontalCenter="0" height="20" bottom="0" />
+	
+	<text:TextLayer id="textLayer" visible="false" left="0" right="0" top="0" bottom="0"
+					  horizontalCenter="0" verticalCenter="0"/>
+	
+	
+</common:ContentView>

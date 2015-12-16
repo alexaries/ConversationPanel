@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:common="view.common.*"  xmlns:groups="view.modes.nav.groups.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<common:states>
+		
+		<!--桌面版本主讲人-->
+		<s:State name="deskChager"/>
+		<!--web版本主讲人-->
+		<s:State name="webChager"/>
+		<!--其他-->
+		<s:State name="other"/>
+		
+		<s:State name="none"/>
+	</common:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.AppConf;
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.nav.MainNavController;
+			import com.doer.modes.nav.NavToolConf;
+			import com.doer.modes.nav.SubNavController;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.NebulaPlatformType;
+			import com.metaedu.client.messages.nebula.NebulaScreenType;
+			
+			import view.common.buttons.NavButton;
+			
+			[Bindable]
+			public var cscale:Number = 1;
+			
+			override public function set currentState(value:String):void
+			{
+				super.currentState = value;
+				
+				mainGroup.currentState = value;
+				
+			}
+			
+			/**
+			 * 设置工具栏是否可用
+			 * **/
+			public function setToolsEnable(isEnable:Boolean):void
+			{
+				toolGroup.setToolsEnable(isEnable);
+			}
+			
+			/**
+			 * 设置角色权限
+			 * **/
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				var nav:NavButton = null;
+				var i:int = 0;
+				
+				if(participantType == NebulaParticipantType.CHARGE)
+				{
+					if(AppConf.platform == NebulaPlatformType.BOARD)
+						this.currentState = "deskChager";
+					else
+						this.currentState = "webChager";
+				}
+				else
+					this.currentState = "other";
+				
+				if(participantType != NebulaParticipantType.VISITOR)
+				{
+					toolGroup.setParticipantTypePower(participantType);
+					
+					mainGroup.setParticipantTypePower(participantType);
+					
+					
+				}else
+				{
+					this.enabled = false;
+				}
+				
+			}
+			
+			public function reset():void
+			{
+				toolGroup.reset();
+					
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group id="container" scaleX="{cscale}" scaleY="{cscale}"  verticalCenter="0" horizontalCenter="0">
+		
+		<s:layout>
+			<s:HorizontalLayout gap="10"/>
+		</s:layout>
+		
+		<groups:NavToolGroup id="toolGroup"   isSubScreenView="true"/>
+		
+		<groups:NavMainGroup id="mainGroup" isSubScreenView="true" />
+		
+	</s:Group>
+	
+</common:ContentView>

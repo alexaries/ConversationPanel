@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" left="0" right="0" top="0" bottom="0" creationComplete="onCreateComplete(event)"
+		 xmlns:live="view.modes.live.*" xmlns:nav="view.modes.nav.*" xmlns:mvmode="view.modes.mvmode.*" xmlns:tool="view.modes.nav.tool.*"
+		 resize="onResize(event)" xmlns:setter="view.modes.tools.setter.*"  minWidth="1000" minHeight="550"
+		 >
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.config.ModeTypes;
+			import com.doer.config.ScreenParams;
+			import com.doer.manager.MetaManager;
+			import com.doer.net.login.LoginController;
+			import com.doer.net.socket.SocketController;
+			import com.doer.resource.ResManager;
+			import com.doer.utils.LocalCommand;
+			import com.doer.utils.LocalCommandType;
+			import com.metaedu.client.messages.nebula.ClientComplexBoardCall;
+			import com.metaedu.client.messages.nebula.NebulaScreenType;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			public static const SIZE_CHANGE:String = "Size_Change";
+			
+			[Bindable]
+			public var numText:String = null;
+			
+			[Bindable]
+			public var selfNameText:String = null;
+			
+			[Bindable]
+			public var complexName:String = null;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			private var metaManager:MetaManager = null;
+			
+			public var isAutoConnect:Boolean = false;
+			
+			protected function onCreateComplete(event:FlexEvent):void
+			{
+				metaManager = new MetaManager(this);	
+				
+				if(isAutoConnect)
+				(metaManager.getControllerById(ModeTypes.MODE_SOCKET_ID) as SocketController).connect();
+			}
+			
+			public function reset():void
+			{
+				metaManager.reset();
+			}
+			
+			public function connect():void
+			{
+				(metaManager.getControllerById(ModeTypes.MODE_SOCKET_ID) as SocketController).connect();
+			}
+			
+			public function login():void
+			{
+				(metaManager.getControllerById(ModeTypes.MODE_LOGIN_ID) as LoginController).loginConversation();
+			}
+			
+			public function quit():void
+			{
+				(metaManager.getControllerById(ModeTypes.MODE_SOCKET_ID) as SocketController).quit();
+			}
+			
+			public function onDestroy():void
+			{
+				metaManager.onDestroy();
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				changeSize();
+			}
+			
+			public function changeSize():void
+			{
+				dispatchEvent(new Event(SIZE_CHANGE));
+			}
+			
+			[Bindable(event="Size_Change")]
+			private function getSubContentSize():Number
+			{
+				var w:Number = 0;
+				
+				if(!ComplexConf.isClipScreen || ComplexConf.isClipScreen && 
+					(ComplexConf.activeScreen == NebulaScreenType.BOARD && ComplexConf.subActiveScreen == NebulaScreenType.BOARD ||
+						ComplexConf.activeScreen == NebulaScreenType.DESKTOP && ComplexConf.subActiveScreen == NebulaScreenType.DESKTOP
+					))
+				{
+					w = 0;
+				}
+				else
+				{	
+					if(ComplexConf.screens == null || ComplexConf.screens.length <= 1)
+						w = width / 2;
+					else
+					{
+						if((ComplexConf.isClipScreen && (ComplexConf.activeScreen == NebulaScreenType.DESKTOP || ComplexConf.subActiveScreen == NebulaScreenType.DESKTOP ))
+							|| ComplexConf.screenMode == ScreenParams.SCREEN_SINGLE_LEFT || ComplexConf.screenMode == ScreenParams.SCREEN_SINGLE_RIGHT
+						)
+							w = width / 2
+						else
+							w = ComplexConf.screens[1].screenWidth;
+					}
+				}
+				
+				
+				return w;
+			}
+			
+			[Bindable(event="Size_Change")]
+			private function getSubDockSize():Number
+			{
+				var w:Number = 0;
+				
+				if(ComplexConf.isClipScreen)
+				{
+					if(ComplexConf.screens == null || ComplexConf.screens.length <= 1)
+						w = width / 2;
+					else
+					{
+						if((ComplexConf.isClipScreen && (ComplexConf.activeScreen == NebulaScreenType.DESKTOP || ComplexConf.subActiveScreen == NebulaScreenType.DESKTOP ))
+							|| ComplexConf.screenMode == ScreenParams.SCREEN_SINGLE_LEFT || ComplexConf.screenMode == ScreenParams.SCREEN_SINGLE_RIGHT
+						)
+							w = width / 2
+						else
+							w = ComplexConf.screens[1].screenWidth;
+					}
+				}
+				
+				
+				return w;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:Rect  left="0" top="0" bottom="0" right="0">
+		<s:fill>
+			<s:BitmapFill source="@Embed('assets/common/icon_background_1.png')" fillMode="repeat" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect left="0" top="0" bottom="0" right="0">
+		<s:fill>
+			<s:BitmapFill source="{resManager.getBitmap('appBackgroundMask')}" fillMode="scale" />
+		</s:fill>
+	</s:Rect>
+	
+	<!--黑板，课件容器，此容器上的子项是互斥的-->
+	<s:Group id="mainContent"  bottom="{navGroup.height}" top="{topLine.height}" left="0" right="{subContent.width}" />
+	
+	<s:Group id="subContent" visible="{subContent.width != 0}" width="{getSubContentSize()}" right="0"  bottom="{navGroup.height}" top="{topLine.height}"/>
+	
+	<!--分屏的弹出容器-->
+	<s:Group id="mainDockContent"  bottom="{navGroup.height}" top="{topLine.height}" left="0" right="{subDockContent.width}">
+		<live:LiveView id="liveView" horizontalCenter="0"    />
+	</s:Group>
+	
+	<s:Group id="subDockContent" visible="{subDockContent.width != 0}"  width="{getSubDockSize()}" right="0"  bottom="{navGroup.height}" top="{topLine.height}" />
+	
+	
+	<s:Line right="{subContent.width}" visible="{ComplexConf.isClipScreen}" yFrom="{topLine.height}" yTo="{this.height - navGroup.height}" >
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="2" />
+		</s:stroke>
+	</s:Line>
+	
+	<nav:NavView subContentWidth="{getSubDockSize()}" bottom="0" left="0" id="navGroup" width="100%" />
+	
+	<s:Group id="topLine" width="{this.width + 40}" height="30" horizontalCenter="0" left="0" right="0" >
+		
+		<s:Rect left="0" right="0" top="0" bottom="0" >
+			<s:fill>
+				<s:BitmapFill source="{resManager.getBitmap('navBackground')}" fillMode="scale" smooth="true">
+					
+				</s:BitmapFill>
+			</s:fill>
+			
+		</s:Rect>
+		
+		<s:Label left="20" verticalCenter="0" text="{selfNameText}" fontSize="16" color="0xffffff" />
+		
+		<s:Label horizontalCenter="20" verticalCenter="0" text="{complexName}" fontSize="16" color="0xffffff" />
+		
+		<s:Label right="20" verticalCenter="0" text="{numText}" fontSize="16" color="0xffffff" />
+		
+		
+		<s:filters>
+			<s:DropShadowFilter color="0x000000" alpha="0.5" blurX="-5" blurY="5" />
+		</s:filters>
+		
+	</s:Group>
+	
+	<mvmode:VideoView id="videoMask" visible="false" left="0" right="0" top="0" bottom="0" />
+
+</s:Group>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"  implements="com.doer.interfaces.IView"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 disabledAlpha="0.5"
+		 width="400" height="300">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.interfaces.IController;
+			
+			import mx.core.IVisualElementContainer;
+			
+			private var _controler:IController = null;
+			
+			private var _isInvalidated:Boolean = false;
+			
+			/**
+			 * 设置角色权限
+			 * **/
+			public function setParticipantTypePower(participantType:int):void
+			{
+				
+			}
+
+			public function get controller():IController
+			{
+				return _controler;
+			}
+			
+			public function set controller(value:IController):void
+			{
+				_controler = value;
+			}
+			
+			public function get isInvalidated():Boolean
+			{
+				return _isInvalidated;
+			}
+			
+			public function invalidate():void
+			{
+				_isInvalidated = true;
+			}
+			
+			public function onDestroy():void
+			{
+				_isInvalidated = false;
+				
+				this.controller = null;
+			}
+			
+			protected function onStartDrag(event:MouseEvent):void
+			{
+				var vi:IVisualElementContainer = this.parent as IVisualElementContainer;
+				
+				vi.setElementIndex(this,vi.numElements - 1);
+				
+				this.startDrag(false,new Rectangle(0,0,this.parent.width - this.width,this.parent.height - this.height));
+				
+				this.stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				
+			}
+			
+			private function onMouseUp(e:MouseEvent):void
+			{
+				if(this.stage != null)
+				this.stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				
+				this.stopDrag();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+</s:Group>

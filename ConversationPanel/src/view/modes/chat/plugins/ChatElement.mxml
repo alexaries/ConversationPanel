@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="{itemMaxWidth}" height="{nameLabel.height + textPanel.height + 5}">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="self" />
+		<s:State name="other" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.metaedu.client.messages.nebula.complex.OnlineUnit;
+			import com.metaedu.client.messages.nebula.member.MemberBasic;
+			
+			[Bindable]
+			public var itemMaxWidth:Number = 0;
+			
+			[Bindable]
+			private var nameText:String = null;
+			
+			[Bindable]
+			private var contentText:String = null;
+			
+			/**
+			 * 设置聊天数据
+			 * **/
+			public function setData(data:Object):void
+			{
+				if(data.id == ComplexConf.userId)
+				{
+					currentState = "self";
+					
+				}else if(data.id == "time")
+				{
+					currentState == "time";
+				}else
+				{
+					currentState = "other";
+				}
+				
+				var info:OnlineUnit = ComplexConf.getMemberById(data.id);
+				
+				nameText =  info == null ? "未知" : info.surname + info.name;
+				contentText = data.content;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Label id="nameLabel" text="{nameText}" fontSize="14" color="0x363636" left.other="15" right.self="15" includeIn="other,self" />
+	
+	
+	<s:Group id="textPanel" top="{nameLabel.height + 5}"  includeIn="other,self" left.other="15" right.self="15" width="{textarea.width}" height="{textarea.height}" >
+		
+		<s:Rect includeIn="other,self" left="0" right="0" top="0" bottom="0"
+				radiusX="10" radiusY="10">
+			<s:fill>
+				<s:SolidColor color.other="0xe5e5e5" color.self="0x66c5e2" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:RichEditableText id="textarea" text="{contentText}" paddingBottom="10" paddingTop="10" paddingLeft="10" paddingRight="10" 
+							color="0x363636" fontSize="14" maxWidth="{itemMaxWidth - 30}" />
+		
+	</s:Group>
+	
+	
+	
+</s:Group>

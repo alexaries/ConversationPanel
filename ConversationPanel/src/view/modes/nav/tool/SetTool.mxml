@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="110" height="42" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.resource.ResManager;
+			
+			[Bindable]
+			public var resManager:ResManager = ResManager.getInstance();
+			
+			public var handler:Function = null;
+			
+			protected function onBtnRaisePower(event:MouseEvent):void
+			{
+				btnRaisePower.selected = !btnRaisePower.selected;
+				
+				handler(!btnRaisePower.selected,"raise");
+			}
+			
+			protected function onBtnChatPower(event:MouseEvent):void
+			{
+				btnChatPower.selected = !btnChatPower.selected;
+				
+				handler(!btnChatPower.selected,"chat");
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Image source="@Embed('assets/nav/icon_set_bg.png')" />
+	
+	
+	<s:Group width="55" height="42" left="0">
+		
+		<buttons:ImageButton id="btnRaisePower" click="onBtnRaisePower(event)" verticalCenter="0" horizontalCenter="0" 
+							 toolTip="举手权限"
+							 width="35" height="35" normalIcon="@Embed('assets/nav/icon_raise_set1.png')" 
+							 selectedIcon="@Embed('assets/nav/icon_raise_set2.png')" />
+		
+	</s:Group>
+	
+	<s:Group right="0" width="55" height="42">
+		
+		<buttons:ImageButton id="btnChatPower" click="onBtnChatPower(event)" 
+							 verticalCenter="0" horizontalCenter="0" toolTip="聊天权限"
+								width="35" height="35" normalIcon="@Embed('assets/nav/icon_chat_set1.png')" 
+								selectedIcon="@Embed('assets/nav/icon_chat_set2.png')" />
+							
+		
+	</s:Group>
+	
+	
+	
+</s:Group>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:student="view.modes.studentlist.student.*"
+				   backgroundAlpha="0.3" backgroundColor="#000000" borderWeight="2" mouseChildren="false"
+				   buttonMode="true" cornerRadius="5" xmlns:data="view.modes.studentlist.data.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			/**
+			 * 该元素所在的行
+			 * **/
+			public var row:Number = 0;
+			
+			/**
+			 * 该元素所在列
+			 * **/
+			public var col:Number = 0;
+			
+			private var _data:Object = null;
+				
+			public function get data():Object
+			{
+				return _data;
+			}
+
+			public function set data(value:Object):void
+			{
+				_data = value;
+				
+				nameText.text = value.surname + value.name;
+				
+				if(value.isPower)
+				{
+					statePoint.state = StudentStatuePoint.IMPOWER;
+					stateLabel.text = "已授权";
+					this.setStyle("borderColor",0xf26c4f);
+					
+					if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+						toolTip = value.surname + value.name + " (点击取消授权)";
+					else
+						toolTip = value.surname + value.name;
+					
+					
+				}else
+				{
+					statePoint.state = value.isRaise ? StudentStatuePoint.HANDED : StudentStatuePoint.ONLINE;
+					
+					stateLabel.text = value.isRaise ? "已举手" : "在线";
+					
+					if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+						toolTip = value.surname + value.name + " (点击授权)";
+					else
+						toolTip = value.surname + value.name;
+				}
+				
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	
+	<s:VGroup verticalCenter="0" horizontalCenter="0" verticalAlign="middle" horizontalAlign="center">
+		
+		<s:Label id="nameText" width="{width - 10}" height="16" color="#FFFFFF" fontSize="14" lineBreak="toFit" maxDisplayedLines="1"
+				  text="涨小明" textAlign="center" verticalAlign="middle"/>
+		
+		
+		<s:HGroup horizontalAlign="center" verticalAlign="middle">
+			<data:StudentStatuePoint id="statePoint" />
+			<s:Label color="#FFFFFF" id="stateLabel" fontSize="10" />
+		</s:HGroup>
+		
+	</s:VGroup>  
+	
+</s:BorderContainer>

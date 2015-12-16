@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="1024" height="45" xmlns:common="view.common.*" xmlns:plugins="view.modes.studentlist.plugins.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import view.modes.studentlist.school.SchoolCardElement;
+			import view.modes.studentlist.school.SchoolLine;
+			
+			private var orzDatas:Array = null;
+			
+			private var lineIndex:int = 0;
+			
+			private var schoolLine:SchoolLine = null;
+			
+			public function setData(orzDatas:Array):void
+			{
+				this.orzDatas = orzDatas;
+				
+				showIndex();
+				
+			}
+			
+			private function showIndex():void
+			{
+				var lin:int = Math.ceil(orzDatas.length / 6);
+				
+				if(lineIndex < lin)
+				{
+					var arr:Array = new Array();
+					
+					for(var i:int = lineIndex * 6; i < lineIndex * 6 + 6; i ++)
+					{
+						if(i < orzDatas.length)
+							arr.push(orzDatas[i]);
+					}
+					
+					if(schoolLine != null)
+					{
+						container.removeElement(schoolLine);
+						schoolLine = null;
+					}
+					
+					schoolLine = new SchoolLine();
+					container.addElement(schoolLine);
+					
+					schoolLine.invalidateByData(arr);
+					
+				}
+				
+			}
+			
+			
+			protected function onPreHandler(event:MouseEvent):void
+			{
+				if(lineIndex > 0)
+					lineIndex --;
+				
+				showIndex();
+			}
+			
+			protected function onNextHandler(event:MouseEvent):void
+			{
+				var lin:int = Math.ceil(orzDatas.length / 6);
+				
+				if(lineIndex < lin - 1)
+					lineIndex ++;
+				
+				showIndex();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<common:ImageBackgroundView  left="0" right="0" top="0" bottom="0"  background="@Embed('assets/studentlist/bottombar_bg.png')" />
+	
+	<buttons:NavButton visible="false" click="onPreHandler(event)" left="10" verticalCenter="0" width="32" height="32" overBg="@Embed('assets/studentlist/button_bg.png')" 
+					   selectedBg="@Embed('assets/studentlist/button_bg.png')" icon="@Embed('assets/studentlist/button_pre.png')" />
+	
+	<buttons:NavButton visible="false" click="onNextHandler(event)" right="10" verticalCenter="0" width="32" height="32" overBg="@Embed('assets/studentlist/button_bg.png')"  selectedBg="@Embed('assets/studentlist/button_bg.png')" icon="@Embed('assets/studentlist/button_next.png')" />
+	
+	<s:Scroller id="scroller" width="760" height="100%" horizontalCenter="0" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		
+		<s:Group id="container">
+			
+		</s:Group>
+		
+	</s:Scroller>
+	
+</s:Group>

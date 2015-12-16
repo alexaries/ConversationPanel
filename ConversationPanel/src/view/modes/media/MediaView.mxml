@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:common="view.common.*"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:media="view.modes.media.*"
+					xmlns:plugins="view.modes.media.plugins.*"
+					xmlns:min="view.modes.media.min.*"
+					xmlns:share="view.modes.share.*"
+					left="0" right="0" top="0" bottom="0" disabledAlpha="1"
+					implements="com.doer.modes.media.interfaces.IMediaCtr">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Tools;
+			import com.doer.config.AppConf;
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.media.MediaController;
+			import com.doer.modes.media.player.VodPlayer;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaCharacterType;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.complex.MediaCtrlType;
+			import com.metaedu.client.messages.nebula.complex.MultimediaUnit;
+			
+			import flash.utils.clearTimeout;
+			import flash.utils.setTimeout;
+			
+			import mx.events.ResizeEvent;
+			
+			import view.modes.share.LiveShareTool;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			private var player:VodPlayer = null;
+			
+			override public function invalidate():void
+			{
+				var myController:MediaController = controller as MediaController;
+
+				player = myController.player;
+				
+				mediaContainer.addChild(player);
+				
+				player.setSize(this.width,this.height);
+				
+				onMediaTime(player.time,player.duration);
+				
+				player.setController(this);
+				
+				super.invalidate();
+			}
+			
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				//this.enabled = participantType ==  NebulaParticipantType.CHARGE;
+				
+			}
+			
+			public function openMedia(sevName:String, fileName:String, id:String, suffix:String, name:String,detail:String):void
+			{
+				(controller as MediaController).readyMedia(sevName,fileName,id,suffix,name,detail);
+				
+			}
+
+			/**
+			 * 快进/快退
+			 * **/
+			public function seek(time:Number):void
+			{
+				(controller as MediaController).seek(time);
+				
+				hideToolBar();
+				
+			}
+			
+			/**
+			 * 播放
+			 * **/
+			public function play():void
+			{
+				(controller as MediaController).play();
+				
+				hideToolBar();
+			}
+			
+			/**
+			 * 暂停
+			 * **/
+			public function pause():void
+			{
+				(controller as MediaController).pause();	
+				
+				hideToolBar();
+			}
+
+			/**
+			 * 视频播放时间
+			 * **/
+			public function onMediaTime(time:Number,duration:Number):void
+			{
+				toolBar.setMediaTime(time,duration);
+				
+				
+			}
+			
+			/**
+			 * 播放完成
+			 * **/
+			public function onComplete():void
+			{
+				toolBar.onComplete();
+			}
+			
+			/**
+			 * 设置最小化
+			 * **/
+			public function setSizeMin():void
+			{
+				(controller as MediaController).setSizeMin();
+			}
+			
+			override public function onDestroy():void
+			{
+				if(player != null && mediaContainer.contains(player))
+					mediaContainer.removeChild(player);
+				
+				player = null;
+				
+				super.onDestroy();
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				if(player != null)
+				{
+					player.setSize(this.width,this.height);
+					
+				}
+					
+			}
+			
+			protected function onClickHandler(event:MouseEvent):void
+			{
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+					toolBar.visible = !toolBar.visible;
+				
+				lvPanel.visible = !lvPanel.visible;
+				
+				hideToolBar();
+			}
+			
+			protected function btnMode1_clickHandler(event:MouseEvent):void
+			{
+				player.setRenderMode(LiveShareTool.fill_width);
+				
+				hideToolBar();
+			}
+			
+			protected function btnMode2_clickHandler(event:MouseEvent):void
+			{
+				player.setRenderMode(LiveShareTool.fill_height);
+				
+				hideToolBar();
+			}
+			
+			protected function btnMode3_clickHandler(event:MouseEvent):void
+			{
+				player.setRenderMode(LiveShareTool.fill_screen);
+				
+				hideToolBar();
+			}
+			
+			private var timeOutId:int = -1;
+			
+			private function hideToolBar():void
+			{
+				if(timeOutId != -1)
+					killToolBarHandler();
+				
+				timeOutId = setTimeout(function():void{
+					
+					toolBar.visible = false;
+					lvPanel.visible = false;
+					
+				},5000);
+			}
+			
+			private function killToolBarHandler():void
+			{
+				clearTimeout(timeOutId);
+				
+				timeOutId = -1;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group left="0" right="0" top="0" bottom="0" click="onClickHandler(event)">
+		
+		<s:Image width="100%" height="100%" scaleMode="stretch" smooth="true"
+				 source="{resManager.getBitmap('mediaBackground')}"/>
+		
+		<s:Rect visible="{player.isVideo}" left="0" right="0" top="0" bottom="0">
+			
+			<s:fill>
+				<s:SolidColor alpha="0.8" color="0x000000"/>
+			</s:fill>
+			
+		</s:Rect>
+		
+		<s:Label id="nameText" left="50" right="50" color="#FFFFFF" fontSize="30"
+				 horizontalCenter="0" maxDisplayedLines="1" text="{player.mediaName}"
+				 textAlign="center" verticalAlign="middle" verticalCenter="0"/>
+		
+		<s:Scroller left="0" right="0" top="0" bottom="0" horizontalScrollPolicy="off"
+					verticalScrollPolicy="off">
+			
+			<s:Group>
+				
+				<mx:UIComponent id="mediaContainer" left="0" right="0" top="0" bottom="0"
+								resize="onResize(event)"/>
+
+			</s:Group>
+			
+		</s:Scroller>
+		
+		
+	</s:Group>
+	
+	
+	<s:BorderContainer id="lvPanel" visible="false" left="0" width="95" height="240"
+					   backgroundAlpha="0.5" borderVisible="false" verticalCenter="0">
+		
+		<s:VGroup horizontalCenter="0" verticalCenter="0">
+			
+			<share:LiveShareButton id="btnMode1" click="btnMode1_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_1.png')"
+								   selected="{player.renderMode == LiveShareTool.fill_width}"/>
+			
+			<share:LiveShareButton id="btnMode2" click="btnMode2_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_2.png')"
+								   selected="{player.renderMode == LiveShareTool.fill_height}"/>
+			
+			<share:LiveShareButton id="btnMode3" click="btnMode3_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_3.png')"
+								   selected="{player.renderMode == LiveShareTool.fill_screen}"/>
+			
+		</s:VGroup>
+		
+	</s:BorderContainer>
+	
+	
+	<plugins:MediaToolBar id="toolBar" visible="false" bottom="20"
+						  width="{this.width - 40 &gt; 600 ? 600 : this.width - 40}" height="60"
+						  horizontalCenter="0" isPlaying="{player.ctrType == MediaCtrlType.PLAY}"/>
+	
+</common:ContentView>

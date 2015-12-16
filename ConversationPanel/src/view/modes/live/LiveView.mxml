@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:common="view.common.*"  creationComplete="onCreateComplete(event)"
+					width="700" height="140" 
+					xmlns:live="view.modes.live.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.config.ModeTypes;
+			import com.doer.meta.MetaCanvas;
+			import com.doer.modes.live.LiveController;
+			import com.doer.modes.studentlist.StudentListController;
+			import com.doer.utils.LocalEvent;
+			import com.greensock.TweenMax;
+			import com.metaedu.client.messages.nebula.NebulaCharacterType;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.complex.OnlineUnit;
+			import com.metaedu.client.messages.nebula.complex.TalkingStatus;
+			import com.metaedu.client.messages.nebula.member.MemberBasic;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.core.IVisualElementContainer;
+			import mx.events.FlexEvent;
+			
+			private var _liveController:LiveController = null;
+			
+			/**
+			 * 控制器
+			 * **/
+			public function get liveController():LiveController
+			{
+				if(_liveController == null)
+					_liveController = controller as LiveController;
+				
+				return _liveController;
+			}
+			
+			/**
+			 * 控制器
+			 * **/
+			public function set liveController(value:LiveController):void
+			{
+				_liveController = value;
+			}
+			
+			/**
+			 * 
+			 * 显示/隐藏
+			 * **/
+			protected function onBtnShowHandler(event:MouseEvent = null):void
+			{
+				if(!TweenMax.isTweening(this))
+				{
+					if(!btnShow.selected)
+					{
+						TweenMax.to(this,0.5,{y : - this.height});
+						btnShow.selected = true;
+					}else
+					{
+						TweenMax.to(this,0.5,{y : 0});
+						btnShow.selected = false;
+					}
+						
+				}
+			}
+			
+			override public function invalidate():void
+			{
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+				{
+					video1.nameText = ComplexConf.chargInfo.surname + ComplexConf.chargInfo.name;
+				}
+				
+				setTimeout(function():void{
+				
+					onBtnShowHandler();
+					
+				},10000);
+				
+			}
+	
+			/**
+			 * 给video排序
+			 * **/
+			public function reLocalVideos():void
+			{
+				var talkings:Vector.<TalkingStatus> = liveController.talkings;
+				
+				for(var i:int = 0; i < talkings.length; i ++)
+				{
+					if(video3.isUsed && video3.infoId == talkings[i].id)
+					{
+						videoContainer.setElementIndex(video3,i + 1);
+					}
+					
+					if(video4.isUsed && video4.infoId == talkings[i].id)
+					{
+						videoContainer.setElementIndex(video4,i + 1);
+					}
+				}
+				
+			}
+			
+			
+			/**
+			 * 获取待渲染的video组件
+			 * **/
+			public function getRenderVideo(userId:String,isDoubleCamera:Boolean = false):LiveVideo
+			{
+				
+				var video:LiveVideo = null;
+				
+				for(var i:int = 1; i <= 4; i ++)
+				{
+					video = this["video" + i];
+					
+					if(!video.isUsed )
+						return video;
+					
+					if(video.infoId == userId && video.isDoubleCamera == isDoubleCamera)
+						return video;
+					
+				}
+				
+				return null;
+			}
+			
+			
+			protected function onCreateComplete(event:FlexEvent):void
+			{
+				video1.addEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video1.addEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video2.addEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video2.addEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video3.addEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video3.addEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video4.addEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video4.addEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				
+			}
+			
+			override public function onDestroy():void
+			{
+				video1.removeEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video1.removeEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video2.removeEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video2.removeEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video3.removeEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video3.removeEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+				video4.removeEventListener(LiveVideo.LIVE_AUDIO_CHECK,onAudioCheck);
+				video4.removeEventListener(LiveVideo.LIVE_VIDEO_CHECK,onVideoCheck);
+				
+			}
+			
+			private function onAudioCheck(e:LocalEvent):void
+			{
+				var info:Object = e.param.info;
+				
+ 				liveController.sendOpenAudio(info.url,info.time);
+			}
+			
+			private function onVideoCheck(e:LocalEvent):void
+			{
+				var info:Object = e.param.info;
+				var isDoubleCamera:Boolean = e.param.isDoubleCamera;
+				
+				
+				liveController.sendOpenVideo(info.url,info.time,isDoubleCamera);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="-1" right="-1" top="-1" bottom="-1">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="0.3" />
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0x2c6b97" alpha="0.6" />
+		</s:stroke>
+		
+		<s:filters>
+			<mx:GlowFilter blurX="5" blurY="5" color="0x2c6b97" alpha="0.6"  >
+				
+			</mx:GlowFilter>
+		</s:filters>
+		
+	</s:Rect>
+	
+	<s:Group height="10" left="0" right="0" bottom="-10"  >
+		
+		<s:Rect left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0x000000" alpha="0.3" />
+			</s:fill>
+		</s:Rect>
+		
+		<buttons:ImageButton id="btnShow" click="onBtnShowHandler(event)"  horizontalCenter="0" verticalCenter="0"  height="10" width="80"
+							 normalIcon="@Embed('assets/live/rightbtn1.png')" selectedIcon="@Embed('assets/live/rightbtn2.png')" />
+		
+		
+	</s:Group>
+	
+	
+	<s:Group left="0" right="0" top="0" bottom="0">
+		
+		<s:HGroup id="videoContainer" top="15" bottom="55" horizontalCenter="0" horizontalAlign="center" verticalAlign="middle" gap="10">
+			
+			<live:LiveVideo id="video1" />
+			
+			<live:LiveVideo id="video2" />
+			
+			<live:LiveVideo id="video3" />
+			
+			<live:LiveVideo id="video4" />
+			
+		</s:HGroup>
+		
+	</s:Group>
+	
+	
+	
+</common:ContentView>

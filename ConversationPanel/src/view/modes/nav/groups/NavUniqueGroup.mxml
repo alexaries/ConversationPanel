@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:tool="view.modes.nav.tool.*"
+		 xmlns:buttons="view.common.buttons.*"
+		 width="{content.width}" height="{content.height}">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:states>
+		<!--桌面版本主讲人-->
+		<s:State name="deskChager"/>
+		<!--主讲人-->
+		<s:State name="webChager"/>
+		<!--其他-->
+		<s:State name="other"/>
+		
+		<s:State name="none"/>
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			/**
+			 * 举手人数
+			 * **/
+			[Bindable]
+			public var handedNum:int = 0;
+			
+			/**
+			 * 未读聊天
+			 * **/
+			[Bindable]
+			public var chatNum:int = 0;
+			
+			public function reset():void
+			{
+				for(var i:int = 0; i < subNavContainer.numElements; i ++)
+				{
+					(subNavContainer.getElementAt(i) as NavButton).selected = false;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:BorderContainer id="content" width="{subNavContainer.width + 20}"
+					   height="{subNavContainer.height + 10}" backgroundAlpha="0.2"
+					   borderAlpha="0.7" borderColor="#FFFFFF" cornerRadius="5">
+		
+		<s:HGroup id="subNavContainer" gap="10" horizontalAlign="center" horizontalCenter="0"
+				  verticalAlign="middle" verticalCenter="0">
+			
+			<!--叠加在主界面上的-->
+			<buttons:NavButton id="btnStudentList" width="45" height="45" groupName="unique"
+							   icon="{resManager.getBitmap('navStudentList')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tipNums="{handedNum}"
+							   tips="在线用户"/>
+			
+			<buttons:NavButton id="btnChat" width="45" height="45" groupName="unique"
+							   icon="{resManager.getBitmap('navChat')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tipNums="{chatNum}"
+							   tips="聊天"/>
+			
+			<buttons:NavButton id="btnFastQuestion" includeIn="none" width="45" height="45"
+							   groupName="unique" icon="{resManager.getBitmap('navFastQestion')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="快速问答"/>
+			
+			<buttons:NavButton id="btnClipScreen" includeIn="webChager,deskChager" width="45" height="45"
+							   groupName="unique" icon="@Embed('assets/nav/icon_clipbord.png')"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{ComplexConf.isClipScreen}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="分屏"/>
+			
+			<buttons:NavButton id="btnRise" enabled="{ComplexConf.isTalking ? false : ComplexConf.enableRaise}" includeIn="other" width="45" height="45"
+							   groupName="unique" icon="@Embed('assets/nav/icon_rise.png')"
+							   overBg="{resManager.getBitmap('navBtnBg1')}" selected="{ComplexConf.isRaise}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}"
+							   tips="{ComplexConf.isRaise ? '取消举手' : '举手'}"/>
+			
+			<buttons:NavButton id="btnSet" width="45" height="45"
+							   enabled="{(ComplexConf.participantType == ComplexConf.Temp_ParticipantType || ComplexConf.participantType == NebulaParticipantType.CHARGE)}"
+							   groupName="unique" icon="@Embed('assets/nav/icon_set.png')"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="设置"/>
+			
+			
+			<buttons:NavButton id="btnClose" width="45" height="45"
+							   icon="{resManager.getBitmap('navClose')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="退出"/>
+			
+			
+		</s:HGroup>
+		
+	</s:BorderContainer>
+	
+	
+</s:Group>

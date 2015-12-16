@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"   xmlns:common="view.common.*"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"  verticalCenter="0" horizontalCenter="0"
+		 width="750" height="450" xmlns:plugins="view.modes.studentlist.plugins.*"
+		 xmlns:studentlist="view.modes.studentlist.*" xmlns:data="view.modes.studentlist.data.*"
+		 >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.config.ModeTypes;
+			import com.doer.modes.studentlist.StudentListController;
+			import com.doer.resource.ResManager;
+			import com.doer.utils.LocalCommand;
+			import com.doer.utils.LocalCommandType;
+			import com.doer.utils.LocalEvent;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			/**
+			 * 机构成员数据
+			 * key 机构id
+			 * value 机构数据单位数ju
+			 * **/
+			private var orzDatas:Array = new Array();
+			
+			override public function invalidate():void
+			{
+				var stuController:StudentListController = controller as StudentListController;
+				
+				orzNameLabel.text = "(" + ComplexConf.complexName + ")";
+				
+				midPanel.setData(stuController.getMembers(),stuController.getTalkingMembers());
+			
+			}
+			
+			/**
+			 * 其他人登录
+			 * **/
+			public function onOtherLogin(id:String,surName:String,name:String,orzs:Array,raise:Boolean = false):void
+			{
+				var obj:Object = {
+					
+					id : id,
+					isRaise : raise,
+					name : name,
+					surname : surName,
+					orzs : orzs
+				}
+				
+				midPanel.addItem(obj);
+			}
+			
+			/**
+			 * 登出
+			 * **/
+			public function onOtherLogout(id:String):void
+			{
+				midPanel.removeItemById(id);
+			}
+			
+			/**
+			 * 授权
+			 * **/
+			public function onComplexTalk(impowers:Array):void
+			{
+				midPanel.onComplexTalk(impowers);
+			}
+			
+			/**
+			 * 举手
+			 * **/
+			public function onRaise(id:String,enable:Boolean):void
+			{
+				midPanel.onRaise(id,enable);
+			}
+			
+			/**
+			 * 清空举手
+			 * **/
+			public function clearRaise():void
+			{
+				midPanel.clearRaise();
+			}
+			
+			override public function onDestroy():void
+			{
+				midPanel.onDestroy();
+				
+				super.onDestroy();
+			}
+			
+			private function onItemHandler(data:Object):void
+			{
+				(controller as StudentListController).complexTalk(data.id,data.enable);
+			}
+			
+			public function onBtnRaiseHandler():void
+			{
+				(controller as StudentListController).onExchangeRaise();
+			}
+			
+			public function onBtnClearHandler():void
+			{
+				(controller as StudentListController).onRaiseHandler(false);
+			}
+			
+			protected function btnClose_clickHandler(event:MouseEvent):void
+			{
+				(controller as StudentListController).sendCommand(new LocalCommand(
+					LocalCommandType.CMD_NAV_STUDENTLIST,{id : ModeTypes.MODE_STUDENTLIST_ID,selected : false})); //学生列表
+			}
+			
+		]]>
+	</fx:Script>
+
+	<s:Rect left="0" right="0" top="0" bottom="0" radiusX="8" radiusY="8">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="0.5" />
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0x2c6b97" alpha="0.6" />
+		</s:stroke>
+		
+		<s:filters>
+			<mx:GlowFilter blurX="5" blurY="5" color="0x15483f" alpha="0.6"  >
+				
+			</mx:GlowFilter>
+		</s:filters>
+		
+	</s:Rect>
+
+	<s:Group id="topPanel" top="0" left="0" right="0" height="55" mouseDown="onStartDrag(event)" buttonMode="true">
+		
+		<common:ImageBackgroundView  left="0" right="0" top="0" bottom="0" 
+									background="@Embed('assets/studentlist/topbar_bg.png')"/>
+
+		<s:VGroup horizontalAlign="center" verticalAlign="middle" horizontalCenter="0" verticalCenter="0">
+			
+			<s:Label color="#FFFFFF" fontSize="18" text="在线用户"/>
+			<s:Label id="orzNameLabel" color="#FFFFFF" fontSize="14" text="(源朝二中)"/>
+		</s:VGroup>
+		
+		<mx:LinkButton id="btnClose" right="15" verticalCenter="0" width="30" height="30"  click="btnClose_clickHandler(event)"
+					   downSkin="@Embed('assets/studentlist/icon_close.png')" 
+					   overSkin="@Embed('assets/studentlist/icon_close.png')"
+					   upSkin="@Embed('assets/studentlist/icon_close.png')"/>
+		
+	</s:Group>
+
+	<studentlist:StudentBottomPanel id="bottomPanel" bottom="0" left="0" right="0" height="45" />
+
+	<studentlist:StudentMidePanel  id="midPanel" handler="onItemHandler" left="0" right="0" top="53" bottom="45" />
+	
+	<common:filters>
+		
+		<s:GlowFilter color="0x000000" blurX="5" blurY="5" alpha="0.5" strength="2" >
+			
+		</s:GlowFilter>
+		
+	</common:filters>
+	
+</common:ContentView>

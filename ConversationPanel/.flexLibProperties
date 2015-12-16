@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.doer.interfaces.IMainClass"/>
+    <classEntry path="view.modes.nav.groups.NavToolGroup"/>
+    <classEntry path="view.modes.nav.groups.NavMainGroup"/>
+    <classEntry path="view.modes.nav.groups.NavUniqueGroup"/>
+    <classEntry path="view.modes.nav.main.MainNavContent"/>
+    <classEntry path="com.doer.modes.nav.SubNavController"/>
+    <classEntry path="com.doer.modes.courseware.SubCoursewareController"/>
+    <classEntry path="com.doer.modes.media.SubMediaController"/>
+    <classEntry path="com.doer.modes.blackbord.SubBlackBordController"/>
+    <classEntry path="com.doer.modes.ModeController"/>
+    <classEntry path="com.doer.modes.nav.NavToolConf"/>
+    <classEntry path="view.modes.blackbord.tools.BlackbordGroup"/>
+    <classEntry path="view.modes.blackbord.tools.BlackbordRuler"/>
+    <classEntry path="com.doer.modes.live.process.LiveVideoProcess"/>
+    <classEntry path="com.doer.modes.live.video.LiveVideoRender"/>
+    <classEntry path="view.modes.skydrive.title.MainTiltle"/>
+    <classEntry path="view.modes.skydrive.tools.UploadButton"/>
+    <classEntry path="skins.seacher.OpenButtonSkin"/>
+    <classEntry path="com.doer.modes.skydrive.files.UsedFileInfo"/>
+    <classEntry path="com.doer.modes.tools.ToolController"/>
+    <classEntry path="com.doer.modes.share.LiveVideoShareController"/>
+    <classEntry path="view.modes.share.LiveVideoShareView"/>
+    <classEntry path="com.doer.modes.share.SubLiveVideoShareController"/>
+    <classEntry path="com.doer.modes.syn.SynDesktopController"/>
+    <classEntry path="view.modes.syn.SynDesktopView"/>
+    <classEntry path="com.doer.modes.syn.SubSynDesktopController"/>
+    <classEntry path="view.modes.skydrive.subview.UploadContent"/>
+    <classEntry path="com.doer.modes.skydrive.SubSkyDriveController"/>
+    <classEntry path="com.doer.modes.skydrive.SkyDriveMode"/>
+    <classEntry path="com.doer.modes.skydrive.files.FileUnit"/>
+    <classEntry path="view.modes.skydrive.subview.SkyDriveContent"/>
+    <classEntry path="view.modes.skydrive.tools.FileListItem"/>
+    <classEntry path="com.doer.modes.skydrive.files.FileDataLoader"/>
+    <classEntry path="view.modes.skydrive.subview.MainTitle"/>
+    <classEntry path="view.modes.skydrive.subview.SubTitle"/>
+    <classEntry path="view.modes.skydrive.tools.FileItem"/>
+    <classEntry path="com.doer.config.ScreenParams"/>
+    <classEntry path="view.modes.share.LiveShareButton"/>
+    <classEntry path="skins.tools.TabBarSkin"/>
+    <classEntry path="skins.tools.TopBarButtonSkin"/>
+    <classEntry path="view.modes.blackbord.tools.BlackbordNoth"/>
+    <classEntry path="com.doer.vmode.filter.IndexAnalysisFilter"/>
+    <classEntry path="view.modes.skydrive.tools.UsedListItem"/>
+    <classEntry path="view.modes.skydrive.subview.UsedFileContent"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

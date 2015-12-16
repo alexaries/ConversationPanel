@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:tool="view.modes.nav.tool.*"
+		 xmlns:buttons="view.common.buttons.*"
+		 width="{background.width}" height="{background.height}">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.nav.NavToolConf;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			private var navConf:NavToolConf = NavToolConf.getInstance();
+			
+			[Bindable]
+			public var isSubScreenView:Boolean = false;
+			
+			/**
+			 * 设置角色权限
+			 * **/
+			public function setParticipantTypePower(participantType:int):void
+			{
+				for(var i:int = 0; i < toolContainer.numElements; i ++)
+				{
+					var nav:NavButton = toolContainer.getElementAt(i) as NavButton;
+					
+					if(nav != btnHand)
+						nav.enabled = participantType == NebulaParticipantType.CHARGE;
+					
+					if(participantType == ComplexConf.Temp_ParticipantType) //临时权限可用
+					{
+						nav.enabled = true;
+					}
+				}
+				
+				toolBox.visible = false;
+				
+			}
+			
+
+			/**
+			 * 设置工具栏是否可用
+			 * **/
+			public function setToolsEnable(isEnable:Boolean):void
+			{
+				for(var i:int = 0; i < toolContainer.numElements; i ++)
+				{
+					var nav:NavButton = toolContainer.getElementAt(i) as NavButton;
+					
+					nav.enabled = isEnable;
+				}
+			}
+			
+			/**
+			 * 重置
+			 * **/
+			public function reset():void
+			{
+				btnPen.selected = false;
+				btnEraser.selected = false;
+				btnText.selected = false;
+				btnHand.selected = true;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<tool:NavToolBox id="toolBox"
+					 visible="{btnPen.selected || btnEraser.selected || btnText.selected}"
+					 x="{btnText.x + 10 + btnText.width/2 - toolBox.width/2 + 50}"
+					 bottom="{this.height + 5}" colorEnable="{btnPen.selected || btnText.selected}"
+					 isSubScreenView="{isSubScreenView}"/>
+	
+	
+	<s:BorderContainer id="background" width="{toolContainer.width + 20}"
+					   height="{toolContainer.height + 10}" backgroundAlpha="0.2" borderAlpha="0.7"
+					   borderColor="#FFFFFF" cornerRadius="5">
+		
+		<s:HGroup id="toolContainer" gap="10" horizontalAlign="center" horizontalCenter="0"
+				  verticalAlign="middle" verticalCenter="0">
+			
+			<buttons:NavButton id="btnPen" width="45" height="45" groupName="tools"
+							   icon="{resManager.getBitmap('navPen2')}" name="tool_pen"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{navConf.getToolSelected('tool_pen',isSubScreenView)}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="画笔"/>
+			<buttons:NavButton id="btnEraser" width="45" height="45" groupName="tools"
+							   icon="{resManager.getBitmap('navEraser')}" name="tool_eraser"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{navConf.getToolSelected('tool_eraser',isSubScreenView)}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="橡皮"/>
+			<buttons:NavButton id="btnText" width="45" height="45" groupName="tools"
+							   icon="{resManager.getBitmap('navText')}" name="tool_text"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{navConf.getToolSelected('tool_text',isSubScreenView)}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="文字工具"/>
+			<buttons:NavButton id="btnHand" width="45" height="45" groupName="tools"
+							   icon="@Embed('assets/nav/nav_hand.png')" name="tool_hand"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{navConf.getToolSelected('tool_hand',isSubScreenView)}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="拖动"/>
+			<buttons:NavButton id="btnClear" width="45" height="45"
+							   icon="{resManager.getBitmap('navClear')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="清除"/>
+			
+		</s:HGroup>
+	</s:BorderContainer>
+	
+	
+</s:Group>

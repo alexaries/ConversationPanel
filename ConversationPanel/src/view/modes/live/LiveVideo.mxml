@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="160" height="120"  
+		 xmlns:plugins="view.modes.tools.plugins.*" xmlns:common="view.common.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.live.tools.LiveVideoInfo;
+			import com.doer.modes.live.video.LiveVideoRender;
+			import com.doer.utils.LocalEvent;
+			import com.metaedu.client.messages.nebula.complex.OnlineUnit;
+			import com.metaedu.client.messages.nebula.member.MemberBasic;
+			import com.strong.rtmp.RtmpProtocolType;
+			import com.strong.rtmp.RtmpRecorderEvent;
+			import com.strong.rtmp.RtmpSeparateRecorder;
+			import com.strong.rtmp.RtmpSeparateRender;
+			
+			/**
+			 * 视频检查
+			 * **/
+			public static const LIVE_VIDEO_CHECK:String = "LIVE_VIDEO_CHECK";
+			
+			/**
+			 * 音频检查
+			 * **/
+			public static const LIVE_AUDIO_CHECK:String = "LIVE_AUDIO_CHECK";
+			
+			private var _isUsed:Boolean = false;
+			
+			/**
+			 * 姓名
+			 * **/
+			[Bindable]
+			public var nameText:String = null;
+			
+			[Bindable]
+			private var audioKey:String = null;
+			
+			/**
+			 * 视频管理类
+			 * **/
+			private var liveVideo:LiveVideoRender = null;
+			
+			/**
+			 * 是不是被用于第二摄像头
+			 * **/
+			public function get isDoubleCamera():Boolean
+			{
+				return liveVideo.videoInfo.isDoubleCamera;
+			}
+			
+			public function get infoId():String
+			{
+				if(liveVideo == null)
+					return null;
+					
+				return liveVideo.videoInfo.id;
+			}
+			
+			/**
+			 * 播放器是否被占用
+			 * **/
+			public function get isUsed():Boolean
+			{
+				_isUsed = liveVideo != null;
+				
+				return _isUsed;
+			}
+
+			/**
+			 * @private
+			 */
+			public function set isUsed(value:Boolean):void
+			{
+				_isUsed = value;
+			}
+
+			/**
+			 * 设置音视频信息
+			 * **/
+			public function setInfo(info:LiveVideoInfo):void
+			{
+				var status:OnlineUnit = ComplexConf.getMemberById(info.id);
+				
+				if(status != null)
+					nameText = status.surname + status.name;
+				else
+				{
+					if(info.id == ComplexConf.chargInfo.id)
+						nameText = ComplexConf.chargInfo.surname + ComplexConf.chargInfo.name;
+				}
+				
+				liveVideo = new LiveVideoRender(this,info);
+			}
+			
+			/**
+			 * 打开音频渲染
+			 * **/
+			public function openAudioRender(audioKey:String,time:Number):void
+			{
+				this.audioKey = audioKey;
+				
+				
+				liveVideo.openAudioRender(audioKey,time);
+			}
+			
+			/**
+			 * 移除音频渲染
+			 * **/
+			public function removeAudioRender():void
+			{
+				this.audioKey = null;
+				
+				liveVideo.removeAudioRender();
+			}
+			
+			/**
+			 * 打开视频渲染
+			 * **/
+			public function openVideoRender(videoKey:String,time:Number):void
+			{
+				liveVideo.openVideoRender(videoKey,time);
+			}
+			
+			/**
+			 * 移除视频渲染
+			 * **/
+			public function removeVideoRender():void
+			{
+				liveVideo.removeVideoRender();
+			}
+			
+			/**
+			 * 打开音频录制
+			 * **/
+			public function openAudioRecord(audioKey:String):void
+			{
+				this.audioKey = audioKey;
+				
+				liveVideo.openAudioRecord(audioKey);
+			}
+			
+			/**
+			 * 移除音频录制
+			 * **/
+			public function removeAudioRecord():void
+			{
+				this.audioKey = null;
+				
+				liveVideo.removeAudioRecord();
+			}
+			
+			/**
+			 * 打开视频录制
+			 * **/
+			public function openVideoRecord(videoKey:String):void
+			{
+				liveVideo.openVideoRecord(videoKey);
+			}
+			
+			/**
+			 * 移除视频录制
+			 * **/
+			public function removeVideoRecord():void
+			{
+				liveVideo.removeVideoRecord();	
+			}
+			
+			/**
+			 * 获取render
+			 * **/
+			public function getRender():LiveVideoRender
+			{
+				return liveVideo;
+			}
+			
+			/**
+			 * 刷新设置参数
+			 * **/
+			public function onRefreshProperty():void
+			{
+				liveVideo.onRefreshProperty();
+			}
+			
+			/**
+			 * 销毁资源
+			 * **/
+			public function onDestroy():void
+			{
+				liveVideo.onDestroy();
+				
+				audioKey = null;
+				nameText = "";
+				liveVideo = null;
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Image source="@Embed('assets/live/icon_head.png')" smooth="true" top="20" bottom="20" horizontalCenter="0" verticalCenter="0"/>
+	
+	<mx:UIComponent id="ui" left="0" right="0" top="0" bottom="0" />
+	
+	<s:BorderContainer left="0" right="0" bottom="0" height="20" backgroundAlpha="0.3"
+					   backgroundColor="#000000" borderVisible="false" contentBackgroundAlpha="1.0"
+					   contentBackgroundColor="#FFFFFF">
+		
+		<s:Label text="{nameText}" left="5" color="#FFFFFF"  verticalCenter="0"/>
+		
+		<buttons:ImageButton id="micStatue" buttonMode="false" selected="{audioKey == null}"  width="20" height="18" verticalCenter="0" right="5" 
+							 normalIcon="@Embed('assets/live/icon_volume.png')" selectedIcon="@Embed('assets/live/volumeoff.png')" />
+		
+	</s:BorderContainer>
+	
+</s:Group>

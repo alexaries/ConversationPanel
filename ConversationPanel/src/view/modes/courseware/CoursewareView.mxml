@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"    xmlns:common="view.common.*"  horizontalCenter="0" verticalCenter="0"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" left="0" top="0" right="0" bottom="0" implements="com.doer.common.interfaces.IVDelegate"
+		 xmlns:courseware="view.modes.courseware.*" disabledAlpha="1" 
+		 resize="onResize(event)" xmlns:text="view.common.text.*" xmlns:plugins="view.modes.courseware.plugins.*" 
+		 >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Delegation;
+			import com.doer.common.mouse.MouseFactory;
+			import com.doer.common.mouse.style.EraserMouseStyle;
+			import com.doer.config.AppConf;
+			import com.doer.config.ComplexConf;
+			import com.doer.courseware.CourseContainer;
+			import com.doer.courseware.container.CSContainer;
+			import com.doer.courseware.utils.CSEvent;
+			import com.doer.meta.MetaCanvas;
+			import com.doer.meta.paint.ShapeStyle;
+			import com.doer.modes.courseware.CoursewareController;
+			import com.doer.modes.courseware.mode.CoursewareMode;
+			import com.metaedu.client.messages.nebula.NebulaCharacterType;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.NebulaPlatformType;
+			import com.metaedu.client.messages.nebula.complex.DocumentUnit;
+			
+			import mx.core.IVisualElementContainer;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.core.IViewport;
+			
+			private var mode:CoursewareMode = null;
+			
+			public var csContainer:CourseContainer = null;
+			
+			public var canvas:MetaCanvas = null;
+			
+			public var delegation:Delegation = null;
+			
+			override public function invalidate():void
+			{
+				csContainer = new CourseContainer(this.width,this.height);
+				csContainer.addEventListener(CSEvent.CS_PAGE_RESIZE,onPageResize);
+				csContainer.addEventListener(CSEvent.CS_PAGE_ADDED,onPageAdded);
+				ui.addChild(csContainer);
+				
+				CourseContainer.address = "http://" + AppConf.fileAddr + "/download/";
+				CourseContainer.isDesktop = AppConf.platform != NebulaPlatformType.WEB;
+				
+				canvas = new MetaCanvas(new Rectangle(0,0,this.width,this.height));
+			
+				ui.addChild(canvas);
+				
+				
+				this.mode = CoursewareMode.getInstance();
+				
+				delegation.addDelegate(this,controller as CoursewareController);
+				
+				onOpenBook(delegation.curBookId,delegation.curPage,delegation.curFrame,(controller as CoursewareController).isOpenFile);
+				
+				(controller as CoursewareController).isOpenFile = false;
+				
+				super.invalidate();
+			}
+			
+			private function onPageResize(e:CSEvent):void
+			{
+				if(mode.documents.length == 0) return;
+				
+				ui.width = e.param.w - 20;
+				ui.height = e.param.h;
+				
+				textLayer.width = ui.width;
+				textLayer.height = ui.height;
+				
+				if(ui.width < scroller.width)
+				{
+					ui.x = scroller.width/2 - ui.width/2;
+					
+					textLayer.x = scroller.width/2 - textLayer.width/2;
+					
+				}else
+				{
+					ui.x = 0;
+					textLayer.x = 0;
+				}
+				
+			
+				canvas.setShowRect(new Rectangle(0,0,e.param.w,e.param.h));
+				canvas.showArea(0);
+				
+			}
+			
+			private function onPageAdded(e:CSEvent):void
+			{
+				loadCover.visible = false;
+				
+				scroller.horizontalScrollBar.value = 0;
+				scroller.verticalScrollBar.value = 0;
+				
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				if(csContainer != null && (csContainer.sizeWidth != this.width || csContainer.sizeHeight != this.height))
+				{
+					
+					csContainer.sizeWidth = this.width;
+					csContainer.sizeHeight = this.height;
+					
+					if(mode.documents.length == 0)
+					csContainer.scale(CSContainer.PARENT_RESIZE);
+				}
+				
+			}
+			
+			/**
+			 * 打开文档
+			 * **/
+			public function onOpenBook(bookId:String,page:int = 0,frame:int = 0,isSend:Boolean = true):void
+			{
+				
+				var info:DocumentUnit = mode.getDocumentById(bookId);
+				
+				if(info != null)
+				{
+					csContainer.setCurHoolBool(mode.getDocumentById(bookId));
+
+					delegation.curBookId = bookId;
+					delegation.curPage = page == 0 ? csContainer.getBookFirstPage() : page;
+					delegation.curFrame = frame; 
+					
+					onPage(delegation.curPage,delegation.curFrame,isSend);
+					
+					toolBar.setPages(csContainer.getCurBookPages(),delegation.curPage);
+				}
+				
+				
+			}
+			
+			/**
+			 * 添加一个可见页数据
+			 * **/
+			public function addCurbookPage(info:Object):void
+			{
+				if(csContainer != null)
+				{
+					csContainer.addCurBookPage(info);
+					
+					toolBar.setPages(csContainer.getCurBookPages(),delegation.curPage);
+				}
+				
+				
+			}
+			
+			/**
+			 * 上一页
+			 * **/
+			public function onPrePage():void
+			{
+				if(this.mode == null || delegation.curBookId == "") return;
+				
+				var p:int = csContainer.showPre();
+				
+				if(p != 0)
+				{
+					loadCover.visible = true;
+					
+					delegation.curPage = p;
+					delegation.curFrame = csContainer.getCurFrame();
+					
+					toolBar.setCurpage(delegation.curPage);
+					
+					delegation.onRefresh();
+					
+				}else
+				{
+					delegation.curFrame = csContainer.getCurFrame();
+				}
+				
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+					(controller as CoursewareController).sendMoveInfo(scroller.horizontalScrollBar.value / scroller.horizontalScrollBar.maximum,
+						scroller.verticalScrollBar.value / scroller.verticalScrollBar.maximum);
+			}
+			
+			/**
+			 * 下一页
+			 * **/
+			public function onNextPage():void
+			{
+				if(this.mode == null || delegation.curBookId == "") return;
+				
+				var p:int = csContainer.showNext();
+				
+				if(p != 0)
+				{
+					loadCover.visible = true;
+					
+					delegation.curPage = p;
+					delegation.curFrame = csContainer.getCurFrame();
+					
+					toolBar.setCurpage(delegation.curPage);
+					
+					delegation.onRefresh();
+					
+				}else
+				{
+					delegation.curFrame = csContainer.getCurFrame();
+				}
+				
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+					(controller as CoursewareController).sendMoveInfo(scroller.horizontalScrollBar.value / scroller.horizontalScrollBar.maximum,
+						scroller.verticalScrollBar.value / scroller.verticalScrollBar.maximum);
+				
+			}
+			
+			/**
+			 * 显示当前课件的page页
+			 * **/
+			public function onPage(page:int,frame:int,isSend:Boolean = true):void
+			{
+				if(this.mode == null || delegation.curBookId == "" || page == 0) return;
+				
+				loadCover.visible = true;
+				
+				delegation.curPage = page;
+				delegation.curFrame = frame;
+				
+				csContainer.show(delegation.curBookId,page,frame);
+				
+				delegation.onRefresh();
+				
+				if(!isSend)
+					toolBar.setCurpage(page);
+				
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE && isSend)
+					(controller as CoursewareController).sendMoveInfo(scroller.horizontalScrollBar.value / scroller.horizontalScrollBar.maximum,
+						scroller.verticalScrollBar.value / scroller.verticalScrollBar.maximum);
+				
+			}
+			
+			/**
+			 * 缩放宽度
+			 * @param per ： 百分比
+			 * **/
+			public function scale(per:Number):void
+			{
+				if(delegation.curBookId != "")
+				csContainer.scale(per);
+			}
+			
+			/**
+			 * 缩放高度
+			 * @param per ： 百分比
+			 * **/
+			public function onChangeScaleMode():void
+			{
+				csContainer.changeScaleMode();
+			}
+			
+			public function getCanvas():MetaCanvas
+			{
+				return canvas;
+			}
+			
+			public function getLayer():TextLayer
+			{
+				toolBar.visible = false;
+				
+				return textLayer;
+			}
+			
+			public function clearDrag():void
+			{
+				toolBar.visible = false;
+				this.buttonMode = false;
+				
+				ui.removeEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+				
+				if(stage.hasEventListener(MouseEvent.MOUSE_UP))
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			}
+			
+			public function readyDrag():void
+			{
+				this.buttonMode = true;
+				
+				toolBar.visible = true;
+				
+				ui.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+				
+			}
+			
+			private var p1:Point = null;
+			
+			private function onMouseDown(e:MouseEvent):void
+			{
+				p1 = new Point(this.mouseX,this.mouseY);
+				
+				addEventListener(Event.ENTER_FRAME,onFrame);
+				stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			}
+			
+			private function onFrame(e:Event):void
+			{
+				var disX:Number = this.mouseX - p1.x;
+				var disY:Number = this.mouseY - p1.y;
+				
+				scroller.horizontalScrollBar.value -= disX;
+				scroller.verticalScrollBar.value -= disY;
+				
+				
+				p1 = new Point(this.mouseX,this.mouseY);
+				
+			}
+			
+			private function onMouseUp(e:MouseEvent):void
+			{
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				removeEventListener(Event.ENTER_FRAME,onFrame);
+			}
+			
+			protected function onUpdateComplete(event:FlexEvent):void
+			{
+
+				if(ui.width < scroller.width)
+				{
+					ui.x = scroller.width/2 - ui.width/2;
+					
+					textLayer.x = scroller.width/2 - textLayer.width/2;
+					
+				}else
+				{
+					ui.x = 0;
+					textLayer.x = 0;
+				}
+				
+			}
+			
+			private function onMouseOver():void
+			{
+				if(canvas.active)
+				{
+					if(delegation.currentPaintStyle.shapeStyle == ShapeStyle.POINTS)
+					{
+						MouseFactory.getInstance().show('pen',delegation.currentPaintStyle.thick);
+					}else if(delegation.currentPaintStyle.shapeStyle == ShapeStyle.ERASER)
+					{
+						MouseFactory.getInstance().show('eraser',delegation.currentPaintStyle.thick,delegation.currentPaintStyle.thick,
+							new Point(-1 * delegation.currentPaintStyle.thick / 2,-1 * delegation.currentPaintStyle.thick / 2));
+						
+					}
+				}
+
+			}
+			
+			private function onMouseOut():void
+			{
+				MouseFactory.getInstance().hide();
+
+			}
+			
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				this.toolBar.isUse = participantType == NebulaParticipantType.CHARGE;
+			}
+			
+			
+			override public function onDestroy():void
+			{
+				this.mode = null;
+				
+				if(delegation != null)
+					delegation.removeDelegate();
+				
+				this.delegation = null;
+				
+				if(canvas != null)
+				{
+					canvas.onDestroy();
+					ui.removeChild(canvas);
+					canvas = null;
+				}
+				
+				
+				if(csContainer != null)
+				{
+					csContainer.onDestroy();
+					
+					csContainer.removeEventListener(CSEvent.CS_PAGE_ADDED,onPageAdded);
+					csContainer.removeEventListener(CSEvent.CS_PAGE_RESIZE,onPageResize);
+					ui.removeChild(csContainer);
+					csContainer = null;
+					
+				}
+				
+				super.onDestroy();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect id="background" top="0" right="0" left="0" bottom="0">
+		<s:fill>
+			<s:BitmapFill source="@Embed('assets/course/coursebackground.png')" smooth="true" fillMode="repeat" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Scroller id="scroller" top="0" bottom="0" right="0" left="0"
+				mouseUp="onMouseUp(event)"  
+				updateComplete="onUpdateComplete(event)" 
+				>
+		
+		<s:Group mouseOver="onMouseOver()" mouseOut="onMouseOut()">
+			<mx:UIComponent id="ui"  />
+			<text:TextLayer  id="textLayer" visible="false" width="100%" height="100%"  />
+			
+		</s:Group>
+		
+	</s:Scroller>
+	
+	<plugins:LoadCover id="loadCover" visible="true" left="0" right="0" top="0" bottom="0" />
+	
+	<courseware:CoursewareToolbar id="toolBar" visible="false" width="{this.width - 40 > 600 ? 600 : this.width - 40}" horizontalCenter="0" bottom="15" />
+	
+</common:ContentView>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"  
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="600" height="100" xmlns:tools="view.modes.blackbord.tools.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import view.modes.blackbord.BlackbordView;
+			
+			private var rect:Rectangle = null;
+			
+			private var bounds:Rectangle = null;
+			
+			private var distance:Number = 0;
+			
+			/**
+			 * 设置刻度
+			 * **/
+			public function setNotch(rect:Rectangle,bounds:Rectangle):void
+			{
+				this.rect = rect;
+				this.bounds = bounds;
+				
+				ui.graphics.clear();
+				
+				ui.graphics.lineStyle(2);
+				
+				var notchNum:int = Math.floor((bounds.x + bounds.width) / rect.width);
+				
+				distance = ui.width / notchNum;
+				
+				for(var i:int = 0; i <= notchNum; i ++)
+				{
+					if(i != 0 && i != notchNum )
+					{
+						ui.graphics.moveTo(i * distance,this.height / 2 - 1);
+						ui.graphics.lineTo(i * distance, this.height / 2 + 1);
+						
+					}
+					
+					
+				}
+				
+				ui.graphics.endFill();
+				
+				ruler.x = rect.x / (notchNum * rect.width) * this.width;
+			}
+			
+			protected function ruler_mouseDownHandler(event:MouseEvent):void
+			{
+				ruler.startDrag(false,new Rectangle(0,ruler.y,this.width,0));
+				
+				stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				addEventListener(Event.ENTER_FRAME,onFrame);
+			}
+			
+			private function onFrame(e:Event):void
+			{
+				var notchNum:int = Math.ceil(ruler.x / distance);
+
+				var x:Number = ruler.x / distance * rect.width;
+				
+				(this.parent as BlackbordView).showPaintArea(x,true);
+				
+			}
+			
+			private function onMouseUp(e:MouseEvent):void
+			{
+				removeEventListener(Event.ENTER_FRAME,onFrame);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				
+				ruler.stopDrag();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Line xFrom="0" xTo="{this.width}" yFrom="{this.height / 2}" yTo="{this.height / 2}">
+		
+		<s:stroke>
+			<s:SolidColorStroke color="0xb1803e" weight="2" />
+		</s:stroke>
+		
+	</s:Line>
+	
+	<s:Group id="ui" left="0" right="0" top="0" bottom="0" />
+	
+	<tools:BlackbordNoth id="ruler" mouseDown="ruler_mouseDownHandler(event)" mouseChildren="false"  y="{this.height / 2 - ruler.height}" />
+	
+</s:Group>

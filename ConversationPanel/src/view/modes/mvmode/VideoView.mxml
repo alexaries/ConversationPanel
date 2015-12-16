@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   width="1200" height="768"  xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.resource.ResManager;
+			import com.doer.vmode.VideoAnalysis;
+			
+			import flash.utils.setTimeout;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			public var analysis:VideoAnalysis = null;
+			
+			private var isLock:Boolean = false;
+			
+			private var _totalTime:Number = 0;
+			
+			private var curTarget:String = null;
+			
+			/**
+			 * 总时长
+			 * **/
+			public function get totalTime():Number
+			{
+				return _totalTime;
+			}
+
+			/**
+			 * @private
+			 */
+			public function set totalTime(value:Number):void
+			{
+				_totalTime = value;
+				
+				var perCent:Number = int((value / 1000) / 60);
+				var min:Number = Math.round((value / 1000) % 60);
+				
+				var perStr:String = perCent < 9 ? "0" + perCent : perCent.toString();
+				var minStr:String = min < 9 ? "0" + min : min.toString();
+				
+				
+				totalLabel.text = perStr + ":" + minStr;
+				
+				
+			}
+			
+			/**
+			 * 播放时间
+			 * **/
+			public function onTime(time:Number):void
+			{
+				if(!isLock)
+				{
+					slider.value = time / totalTime * slider.maximum;
+					
+					var perCent:Number = int((time / 1000) / 60);
+					var min:Number = Math.round((time / 1000) % 60);
+					
+					var perStr:String = perCent < 9 ? "0" + perCent : perCent.toString();
+					var minStr:String = min < 9 ? "0" + min : min.toString();
+					
+					timeLabel.text = perStr + ":" + minStr;
+				}
+				
+			}
+			
+			public function onComplete():void
+			{
+				btnPlay.selected = false;
+			}
+			
+			protected function onBtnPlayHandler(event:MouseEvent):void
+			{
+				btnPlay.selected = !btnPlay.selected;
+				
+				if(btnPlay.selected)
+					analysis.play();
+				else
+					analysis.pause();
+			}
+			
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				curTarget = event.target.name;
+				
+				isLock = true;
+				
+				stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			}
+			
+			protected function onMouseUp(e:MouseEvent):void
+			{
+				
+				stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			
+				if(curTarget == "thumb")
+				{
+					setTimeout(function():void{
+						
+						isLock = false;
+						analysis.seek(slider.value / slider.maximum * totalTime);
+						
+					},50);
+				}
+				
+				
+			}
+			
+			protected function onValueChange(event:Event):void
+			{
+				if(curTarget != "thumb")
+				{
+					setTimeout(function():void{
+						
+						isLock = false;
+						analysis.seek(slider.value / slider.maximum * totalTime);
+						
+					},50);
+					
+					
+				}
+					
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Group left="0" bottom="0" right="0" height="60" >
+	
+		<s:Rect width="100%" height="100%" >
+			<s:fill>
+				<s:BitmapFill source="{resManager.getBitmap('navBackground')}" fillMode="repeat">
+					
+				</s:BitmapFill>
+			</s:fill>
+		</s:Rect>
+		
+		<s:BorderContainer  width="{container.width + 60}"  verticalCenter="0" horizontalCenter="0"
+							cornerRadius="5" height="55" backgroundAlpha="0.2" borderAlpha="0.7" borderColor="#FFFFFF">
+			
+			
+			<s:HGroup id="container" verticalAlign="middle" horizontalAlign="center" gap="20" horizontalCenter="0" verticalCenter="0">
+				
+				
+				<buttons:ImageButton id="btnPlay" width="33" height="41" click="onBtnPlayHandler(event)"
+									 normalIcon="@Embed('assets/mvmode/icon_play.png')"
+									 selectedIcon="@Embed('assets/mvmode/icon_pause.png')" />
+				
+				<s:Label id="timeLabel" x="34" width="80" height="60" color="0xffffff" fontSize="16"
+						 text="00:00" textAlign="center" verticalAlign="middle"/>
+				
+				<s:HSlider id="slider" change="onValueChange(event)" mouseDown="onMouseDown(event)" buttonMode="true" width="600"  maximum="10000" verticalCenter="0" skinClass="skins.media.MediaBar" showDataTip="false" />
+				
+				<s:Label id="totalLabel" width="80" height="60" color="0xffffff" fontSize="16"
+						 text="00:00" verticalAlign="middle"/>
+				
+			</s:HGroup>
+			
+		</s:BorderContainer>
+		
+	</s:Group>
+	
+</s:Group>

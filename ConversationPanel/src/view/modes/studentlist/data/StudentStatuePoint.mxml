@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="10" height="10" xmlns:common="view.common.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			public static const ONLINE:int = 1;
+			
+			public static const OFFLINE:int = 2;
+			
+			public static const HANDED:int = 3;
+			
+			public static const IMPOWER:int = 4;
+			
+			[Embed(source="assets/studentlist/point1.png")]
+			private var p1:Class;
+			
+			[Embed(source="assets/studentlist/point2.png")]
+			private var p2:Class;
+			
+			[Embed(source="assets/studentlist/point3.png")]
+			private var p3:Class;
+			
+			[Embed(source="assets/studentlist/point4.png")]
+			private var p4:Class;
+			
+			[Bindable]
+			private var curClass:Class;
+			
+			private var _state:int = 1;
+			
+			public function get state():int
+			{
+				return _state;
+			}
+
+			public function set state(value:int):void
+			{
+				_state = value;
+				
+				if(value == StudentStatuePoint.ONLINE)
+				{
+					curClass = p1;
+				}else if(value == StudentStatuePoint.OFFLINE)
+				{
+					curClass = p2;
+				}else if(value == StudentStatuePoint.HANDED)
+				{
+					curClass = p3;
+				}else if(value == StudentStatuePoint.IMPOWER)
+				{
+					curClass = p4;
+				}
+				
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	<common:ImageBackgroundView left="0" right="0" top="0" bottom="0" background="{curClass}" />
+	
+</s:Group>

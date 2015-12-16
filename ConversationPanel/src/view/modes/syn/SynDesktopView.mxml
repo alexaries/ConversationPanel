@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:common="view.common.*" 
+					left="0" right="0" top="0" bottom="0" resize="onResize(event)" xmlns:share="view.modes.share.*" 
+					>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Tools;
+			import com.doer.config.AppConf;
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.live.process.LiveVideoProcess;
+			import com.doer.modes.syn.SynDesktopController;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.NebulaPlatformType;
+			import com.metaedu.client.messages.nebula.NebulaScreenType;
+			import com.metaedu.client.messages.utils.TimeUtils;
+			import com.strong.rtmp.RtmpProtocolType;
+			import com.strong.rtmp.RtmpRecorderEvent;
+			import com.strong.rtmp.RtmpSeparateRecorder;
+			import com.strong.rtmp.RtmpSeparateRender;
+			
+			import flash.system.fscommand;
+			
+			import mx.events.ResizeEvent;
+			
+			import view.modes.share.LiveShareTool;
+			
+			private var recorder:RtmpSeparateRecorder = null;
+			
+			private var render:RtmpSeparateRender = null;
+			
+			[Bindable]
+			private var renderMode:String = LiveShareTool.fill_screen;
+			
+			override public function invalidate():void
+			{
+				var w:Number = getDetailWidth(ComplexConf.synVideoDetail);
+				var h:Number = getDetailHeight(ComplexConf.synVideoDetail);
+				
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE && AppConf.platform == NebulaPlatformType.BOARD)
+				{
+					recorder = new RtmpSeparateRecorder(true,false,w,h);
+					recorder.setProtocol(RtmpProtocolType.RTMP,1935,80);
+					
+					recorder.width = this.width;
+					recorder.height = this.height;
+					
+					ui.addChild(recorder);
+					
+					recorder.addEventListener(RtmpRecorderEvent.VIDEO_RECORD_CHECK,onVideoCheckHandler);
+					
+					onOpenRecord();
+					
+				}else
+				{
+					render = new RtmpSeparateRender(w,h);
+					render.setProtocol(RtmpProtocolType.RTMP,1935,80);
+					
+					render.width = this.width;
+					render.height = this.height;
+					
+					ui.addChild(render);
+					
+					render.openVideo(AppConf.rtmpLiveAddress, "vidoo");
+				}
+				
+				setRenderSize(getDetailWidth(ComplexConf.synVideoDetail),getDetailHeight(ComplexConf.synVideoDetail));
+				
+				super.invalidate();
+
+			}
+			
+			private function getDetailWidth(detail:String):Number
+			{
+				var arr:Array = detail.split("x");
+				
+				return Number(arr[0]);
+			}
+			
+			private function getDetailHeight(detail:String):Number
+			{
+				var arr:Array = detail.split("x");
+				
+				return Number(arr[1]);
+			}
+			
+			private var camera:Camera = null;
+			
+			private function onOpenRecord():void
+			{
+				
+				var timeStr:String = LiveVideoProcess.getDateStandard(new Date());
+				
+				var videoKey:String = ComplexConf.userId + "/" + "desktop-syn" + "/" + timeStr;
+				
+				for(var i:int = 0; i < Camera.names.length; i ++)
+				{
+					var str:String = Camera.names[i];
+					
+					if(str == AppConf.vituralCameraName)
+					{
+						camera = Camera.getCamera(i.toString());
+						
+						if(camera.muted)
+						{
+							Security.showSettings(SecurityPanel.PRIVACY);
+							
+							camera.addEventListener(StatusEvent.STATUS,onCameraStatus);
+						}else
+						{
+							try
+							{
+								ExternalInterface.call("onShareMode");
+								//fscommand("onShareMode");
+							} 
+							catch(error:Error) 
+							{
+								
+							}
+							
+							recorder.openVideo(AppConf.rtmpLiveAddress, videoKey, i, getDetailWidth(ComplexConf.synVideoDetail), getDetailHeight(ComplexConf.synVideoDetail), 8192*2);
+							
+						}
+						
+						break;
+						
+					}
+					
+				}
+				
+				
+				
+			}
+			
+			private function onCameraStatus(e:StatusEvent):void
+			{
+				var timeStr:String = LiveVideoProcess.getDateStandard(new Date());
+
+				var videoKey:String = ComplexConf.userId + "/" + "desktop-syn" + "/" + timeStr;
+				
+				switch (e.code) 
+				{ 
+					case "Camera.Muted": 
+						Tools.alert('您必须允许才能继续！');
+						break; 
+					case "Camera.Unmuted": 
+						try
+						{
+							ExternalInterface.call("onShareMode");
+							//fscommand("onShareMode");
+						} 
+						catch(error:Error) 
+						{
+							
+						}
+						
+						recorder.openVideo(AppConf.rtmpLiveAddress, videoKey, camera.index, getDetailWidth(ComplexConf.synVideoDetail), getDetailHeight(ComplexConf.synVideoDetail), 8192*2);
+						break; 
+				} 
+			}
+			
+			private function onVideoCheckHandler(e:RtmpRecorderEvent):void
+			{
+				(controller as SynDesktopController).sendSynInfo(e.info.url,e.info.time,ComplexConf.synVideoDetail);
+			}
+			
+			public function onRcvSynInfo(videoKey:String,detail:String,time:Number):void
+			{
+				var w:Number = getDetailWidth(detail);
+				var h:Number = getDetailWidth(detail);
+				
+				if(render != null)
+				{
+					render.openVideo(AppConf.rtmpLiveAddress,videoKey,AppConf.isRecord,time);
+					setRenderSize(w,h);
+				}
+
+			}
+			
+			override public function onDestroy():void
+			{
+				super.onDestroy();
+				
+				if(recorder != null)
+				{
+					recorder.closeVideo();
+					
+					recorder.removeEventListener(RtmpRecorderEvent.VIDEO_RECORD_CHECK,onVideoCheckHandler);
+					ui.removeChild(recorder);
+					
+					recorder = null;
+				}
+				
+				if(render != null)
+				{
+					render.closeVideo();
+					
+					ui.removeChild(render);
+					
+					render = null;
+				}
+				
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				setRenderSize(getDetailWidth(ComplexConf.synVideoDetail),getDetailHeight(ComplexConf.synVideoDetail));
+				
+			}
+			
+			private function setRenderSize(w:Number,h:Number):void
+			{
+				var sX:Number = 1;
+				var sY:Number = 1;
+				
+				if(renderMode == LiveShareTool.fill_width)
+				{
+					sY = sX = width / w;
+				}else if(renderMode == LiveShareTool.fill_height)
+				{
+					sX = sY = height / h;
+				}else if(renderMode == LiveShareTool.fill_screen)
+				{
+					sX = width / w;
+					sY = height / h;
+					
+				}
+				
+				if(recorder != null)
+				{
+					recorder.width = sX * w;
+					recorder.height = sY * h;
+					
+					recorder.x = this.width / 2 - recorder.width / 2;
+					recorder.y = this.height / 2 - recorder.height / 2;
+					
+				}
+				
+				if(render != null)
+				{
+					render.width = sX * w;
+					render.height = sY * h;
+					
+					render.x = this.width / 2 - render.width / 2;
+					render.y = this.height / 2 - render.height / 2;
+				}
+				
+			}
+			
+			protected function btnMode1_clickHandler(event:MouseEvent):void
+			{
+				this.renderMode = LiveShareTool.fill_width;
+				
+				setRenderSize(getDetailWidth(ComplexConf.synVideoDetail),getDetailHeight(ComplexConf.synVideoDetail));
+				
+			}
+			
+			protected function btnMode2_clickHandler(event:MouseEvent):void
+			{
+				this.renderMode = LiveShareTool.fill_height;
+				
+				setRenderSize(getDetailWidth(ComplexConf.synVideoDetail),getDetailHeight(ComplexConf.synVideoDetail));
+				
+			}
+			
+			protected function btnMode3_clickHandler(event:MouseEvent):void
+			{
+				this.renderMode = LiveShareTool.fill_screen;
+				
+				setRenderSize(getDetailWidth(ComplexConf.synVideoDetail),getDetailHeight(ComplexConf.synVideoDetail));
+				
+			}
+			
+			protected function onClickHandler(event:MouseEvent):void
+			{
+				lvPanel.visible = !lvPanel.visible;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group left="0" right="0" top="0" bottom="0"  >
+		
+		<s:Rect left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0x000000" alpha="0.8" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:Image source="@Embed('assets/share/icon_camera.png')"  horizontalCenter="0" verticalCenter="0" />
+
+	</s:Group>
+	
+	
+	<s:SpriteVisualElement id="ui" left="0" right="0" top="0" bottom="0" click="onClickHandler(event)" />
+	
+	<s:BorderContainer id="lvPanel" visible="false" left="0" width="95" height="240"
+					   backgroundAlpha="0.5" borderVisible="false" verticalCenter="0">
+		
+		<s:VGroup horizontalCenter="0" verticalCenter="0">
+			
+			<share:LiveShareButton id="btnMode1" click="btnMode1_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_1.png')"
+								   selected="{renderMode == LiveShareTool.fill_width}"/>
+			
+			<share:LiveShareButton id="btnMode2" click="btnMode2_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_2.png')"
+								   selected="{renderMode == LiveShareTool.fill_height}"/>
+			
+			<share:LiveShareButton id="btnMode3" click="btnMode3_clickHandler(event)"
+								   icon="@Embed('assets/share/icon_mode_3.png')"
+								   selected="{renderMode == LiveShareTool.fill_screen}"/>
+			
+		</s:VGroup>
+		
+	</s:BorderContainer>
+	
+</common:ContentView>

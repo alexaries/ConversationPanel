@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="onCreateComplete(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="{textArea.width}" height="{textArea.height}"  >
+	<fx:Script>
+		<![CDATA[
+			import com.doer.resource.ResManager;
+			
+			import fl.text.TLFTextField;
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			import flash.text.engine.FontWeight;
+			import flash.utils.setTimeout;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.elements.ParagraphElement;
+			import flashx.textLayout.elements.SpanElement;
+			import flashx.textLayout.elements.TextFlow;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import flashx.textLayout.operations.DeleteTextOperation;
+			import flashx.textLayout.operations.SplitParagraphOperation;
+			
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			
+			import spark.components.RichEditableText;
+			import spark.events.TextOperationEvent;
+			
+			public var textColor:uint = 0;
+			
+			public var textSize:int = 0;
+			
+			public var textStr:String = "";
+			
+			private var selectPostion:Number = 0;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			private var lastStr:String = null;
+			
+			protected function onTextChanging(event:TextOperationEvent):void
+			{
+				if(!(event.operation is DeleteTextOperation) && !(event.operation is SplitParagraphOperation) )
+					event.preventDefault();
+			}
+			
+			protected function onTextInput(event:TextEvent):void
+			{
+				lastStr = event.text;
+				
+				if(textStr == "")
+					textStr += event.text;
+				else
+				{
+					textStr = textStr.slice(0,textArea.selectionActivePosition) + 
+						event.text + textStr.slice(textArea.selectionActivePosition,textArea.text.length) ;
+				}
+				
+				
+				selectPostion = textArea.selectionActivePosition + event.text.length;
+				
+				textArea.text = null;
+				
+				appendText(textStr);
+			}
+			
+			public function refresh():void
+			{
+				textArea.text = null;
+				
+				appendText(textStr);
+			}
+			
+			protected function onPaste(event:Event):void
+			{
+				var str:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
+				
+				if(str == null) return;
+				
+				lastStr = str;
+				
+				if(textStr == "")
+					textStr += str;
+				else
+				{
+					textStr = textStr.slice(0,textArea.selectionActivePosition) + 
+						str + textStr.slice(textArea.selectionActivePosition,textArea.text.length) ;
+				}
+				
+				
+				selectPostion = textArea.selectionActivePosition + str.length;
+				
+				textArea.text = null;
+				
+				appendText(textStr);
+				
+				
+				
+			}
+			
+			private function appendText(text:String):void
+			{
+				var arr:Array = new Array();
+				
+				arr.push({
+					isChar : true,
+					text : ""
+				});
+				
+				for(var i:int = 0; i < text.length; i ++)
+				{
+					if(text.charCodeAt(i) <= 128)
+					{
+						if(!arr[arr.length - 1].isChar)
+						{
+							arr.push({
+								
+								isChar : true,
+								text : ""
+							});
+						}
+						
+						arr[arr.length - 1].text += text.charAt(i);
+						
+					}else
+					{
+						if(arr[arr.length - 1].isChar)
+						{
+							arr.push({
+								
+								isChar : false,
+								text : ""
+							});
+						}
+						
+						arr[arr.length - 1].text += text.charAt(i);
+					}
+				}
+				
+				for(i = 0; i < arr.length; i ++)
+				{
+					appendTextToTextArea(arr[i].text,arr[i].isChar);
+				}
+				
+				textArea.textFlow.flowComposer.updateAllControllers();
+				
+				checkText();
+			}
+			
+			private function appendTextToTextArea(text:String,isChar:Boolean = false):void
+			{
+				var textFlow:TextFlow = textArea.textFlow;
+				
+				var paragraph:ParagraphElement = textFlow.getChildAt(textFlow.numChildren - 1) as ParagraphElement;
+				
+				if(paragraph == null)
+				{
+					paragraph = new ParagraphElement();
+					
+					textFlow.addChild(paragraph);
+				}
+				
+				if(text != "")
+				{
+					var span:SpanElement = new SpanElement();
+					
+					
+					var tft:TextLayoutFormat = new TextLayoutFormat();
+					
+					if(isChar)
+					{
+						tft.fontFamily = "Inno";
+					}else
+					{
+						tft.fontFamily = "微软雅黑,Microsoft Yahei";
+					}
+					
+					
+					tft.fontSize = textSize;
+					tft.fontWeight = FontWeight.NORMAL;
+					tft.color = textColor;
+					
+					span.format = tft;
+					
+					span.text = text;
+					
+					
+					paragraph.addChild(span);
+					
+				}
+				
+				textArea.selectRange(selectPostion,selectPostion);
+				
+			}
+			
+			protected function checkText(event:FlexEvent = null):void
+			{
+				
+				var h:Number = textArea.contentHeight + Number(textArea.getStyle('paddingBottom')) + Number(textArea.getStyle('paddingTop'));
+				var w:Number = textArea.contentWidth + Number(textArea.getStyle('paddingLeft')) + Number(textArea.getStyle('paddingRight'));
+			
+				if(h > maxHeight || w > maxWidth)
+				{
+					if(lastStr != null)
+					{
+						
+						textStr = textStr.substr(0,textStr.length - lastStr.length);
+						
+						lastStr = null;
+						
+						refresh();
+					
+					}					
+				}
+			
+			
+				
+			}
+			
+			
+			
+			protected function onCreateComplete(event:FlexEvent):void
+			{
+				//stage.focus = textArea;
+				focusManager.setFocus(textArea);
+			}
+			
+			protected function onTextChange(event:TextOperationEvent):void
+			{
+				textStr = textArea.text;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<s:RichEditableText id="textArea"  paddingTop="5" paddingLeft="5" 
+				paddingBottom="5" paddingRight="5"   change="onTextChange(event)"
+				changing="onTextChanging(event)" color="{resManager.getColor('labelColor')}" 
+				paste="onPaste(event)" textInput="onTextInput(event)" >
+		
+	</s:RichEditableText>
+
+</s:Group>

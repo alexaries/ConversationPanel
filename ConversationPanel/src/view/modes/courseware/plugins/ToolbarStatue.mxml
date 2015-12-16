@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100" height="40" buttonMode="true">
+	
+	<fx:Script>
+		<![CDATA[
+			import view.modes.courseware.CoursewareToolbar;
+			
+			[Bindable]
+			public var isWidthScale:Boolean = false;
+			
+			protected function onItem1Click(event:MouseEvent):void
+			{
+				if(!isWidthScale)
+					(this.parent as CoursewareToolbar).onChangeScaleMode();
+				
+				isWidthScale = true;
+			}
+			
+			protected function onItem2Click(event:MouseEvent):void
+			{
+				if(isWidthScale)
+					(this.parent as CoursewareToolbar).onChangeScaleMode();
+				
+				isWidthScale = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	
+	<s:Image left="0" right="0" top="0" bottom="0" fillMode="scale"
+			 source="@Embed('assets/course/statuebutton_bg.png')"/>
+	
+	<s:Group height="{this.height}" width="{this.width/2}" left="0" click="onItem1Click(event)">
+		
+		<s:Image verticalCenter="0" horizontalCenter="0" source="@Embed('assets/course/statuebutton_item1.png')" />
+		
+		<s:Image  visible="{isWidthScale}" left="0" right="0" top="0" bottom="0" fillMode="scale"
+				  source="@Embed('assets/course/statuebutton_selected.png')"/>
+	</s:Group>
+	
+	<s:Group height="{this.height}" width="{this.width/2}" right="0" click="onItem2Click(event)">
+		
+		<s:Image verticalCenter="0" horizontalCenter="0" source="@Embed('assets/course/statuebutton_item2.png')" />
+		<s:Image visible="{!isWidthScale}"  left="0" right="0" top="0" bottom="0" fillMode="scale"
+				  source="@Embed('assets/course/statuebutton_selected.png')"/>
+	</s:Group>
+	
+</s:Group>

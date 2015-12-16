@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"   xmlns:common="view.common.*" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="450" verticalCenter="0" horizontalCenter="0" xmlns:chat="view.modes.chat.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.config.ModeTypes;
+			import com.doer.interfaces.IController;
+			import com.doer.modes.chat.ChatController;
+			import com.doer.utils.LocalCommand;
+			import com.doer.utils.LocalCommandType;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import flash.utils.setInterval;
+			
+			import flashx.textLayout.elements.InlineGraphicElement;
+			import flashx.textLayout.elements.ParagraphElement;
+			import flashx.textLayout.elements.SpanElement;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import view.modes.chat.plugins.ChatElement;
+			
+			
+			private var chats:Vector.<ChatElement> = null;
+			
+			public var isUpdate:Boolean = true;
+			
+			override public function invalidate():void
+			{
+				chats = new Vector.<ChatElement>();
+				
+				var arr:Array = (controller as ChatController).getInvalidateData();
+				
+				for(var i:int = 0; i < arr.length; i ++)
+				{
+					var chat:ChatElement = new ChatElement();
+					chat.itemMaxWidth = this.width;
+					
+					panel.addElement(chat);
+					
+					chat.setData(arr[i]);
+					
+					chats.push(chat);
+				}
+				
+				scroller.verticalScrollBar.addEventListener(Event.CHANGE,onChange);
+				
+				onPowerChange();
+			}
+			
+			private function onChange(e:Event):void
+			{
+				if(scroller.verticalScrollBar.value == scroller.verticalScrollBar.maximum)
+				{
+					(controller as ChatController).clearNotRead();
+				}
+			}
+			
+			
+			/**
+			 * 发送聊天消息
+			 * **/
+			public function sendChat(text:String):void
+			{
+				(controller as ChatController).sendChatMsg(text);
+
+			}
+			
+			
+			
+			/**
+			 * 收到聊天消息
+			 * **/
+			public function onRefresh(data:Object):void
+			{
+				var chat:ChatElement = new ChatElement();
+				chat.itemMaxWidth = this.width;
+				
+				panel.addElement(chat);
+				
+				chat.setData(data);
+				
+				chats.push(chat);
+				
+				if(chats.length > 100)
+				{
+					while(chats.length > 100)
+					{
+						var ch:ChatElement = chats.shift();
+						
+						panel.removeElement(ch);
+						
+					}
+				}
+				
+				if(data.id != ComplexConf.userId && scroller.verticalScrollBar.value != scroller.verticalScrollBar.maximum)
+				{
+					isUpdate = false;
+				}else
+				{
+					isUpdate = true;
+				}
+				
+			}
+			
+			/**
+			 * 权限变更
+			 * **/
+			public function onPowerChange():void
+			{
+				bottomPanel.textArea.text = "";
+				bottomPanel.textArea.editable = ComplexConf.enableChat;
+				bottomPanel.enabled = ComplexConf.enableChat;
+					
+				title.text = ComplexConf.enableChat ? "课堂聊天" : "课堂聊天（已禁用）";
+				
+			}
+			
+			protected function onUpdateComplete(event:FlexEvent):void
+			{
+				if(isUpdate)
+				scroller.verticalScrollBar.value = scroller.verticalScrollBar.maximum;
+			}
+			
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				focusManager.setFocus(scroller);
+			}
+			
+			protected function onMouseWheel(event:MouseEvent):void
+			{
+				if(scroller.verticalScrollBar.value == scroller.verticalScrollBar.maximum)
+				{
+					(controller as ChatController).clearNotRead();
+				}
+			}
+			
+			protected function onBtnChatHandler(event:MouseEvent):void
+			{
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+					(controller as ChatController).onExchangeChat();
+			}
+			
+			protected function btnClose_clickHandler(event:MouseEvent):void
+			{
+				(controller as ChatController).sendCommand(new LocalCommand(
+					LocalCommandType.CMD_NAV_CHAT,{id : ModeTypes.MODE_CHAT_ID,selected : false})); //聊天
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="0" right="0" top="50" bottom="0">
+		<s:fill>
+			<s:SolidColor color="0xb5cdca" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group height="50" buttonMode="true" left="0" right="0" mouseDown="onStartDrag(event)">
+		
+		<s:Rect  left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:BitmapFill source="@Embed('assets/chat/topbar_bg.png')" />
+			</s:fill>
+		</s:Rect>
+		
+		<s:Image click="onBtnChatHandler(event)" buttonMode="true" toolTip="{ComplexConf.enableChat ? '禁止聊天' : '打开聊天'}" source="@Embed('assets/chat/topbar_icon.png')" verticalCenter="0" left="10" />
+		
+		<s:Label id="title" color="#FFFFFF" fontSize="20" horizontalCenter="0" text="课堂聊天" verticalCenter="0"/>
+		
+		<mx:LinkButton id="btnClose" right="15" verticalCenter="0" width="25" height="25"  click="btnClose_clickHandler(event)"
+					   downSkin="@Embed('assets/chat/icon_close.png')" 
+					   overSkin="@Embed('assets/chat/icon_close.png')"
+					   upSkin="@Embed('assets/chat/icon_close.png')"/>
+		
+	</s:Group>
+	
+	<s:Scroller id="scroller" left="0" right="0" top="55" bottom="60" skinClass="skins.chat.ChatScrollerSkin" mouseWheel="onMouseWheel(event)"
+				updateComplete="onUpdateComplete(event)" mouseOver="onMouseOver(event)" horizontalScrollPolicy="off">
+		
+		<s:Group>
+			<s:VGroup id="panel" gap="10"  />
+		</s:Group>
+		
+	</s:Scroller>
+	
+	<chat:ChatBottomPanel id="bottomPanel"  bottom="0" left="0" right="0" height="56" />
+	
+	<common:filters>
+		
+		<s:GlowFilter color="0x000000" blurX="5" blurY="5" alpha="0.5" strength="2" >
+			
+		</s:GlowFilter>
+		
+	</common:filters>
+	
+</common:ContentView>

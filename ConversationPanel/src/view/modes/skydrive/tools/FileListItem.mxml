@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" height="45" 
+				autoDrawBackground="false" toolTip="{fileInfo.name}"
+				currentState="{fileInfo.fileStatus}"
+				>
+	
+	<s:states>
+		<s:State name="status_uploading" />
+		<s:State name="status_upload_complete" />
+		<s:State name="status_changing" />
+		<s:State name="status_changing_complete" />
+		<s:State name="status_unsupport" />
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.modes.skydrive.files.FileUnit;
+			import com.doer.modes.skydrive.files.UsedFileInfo;
+			import com.doer.utils.LocalEvent;
+			
+			[Embed(source="assets/skydrive/audio.png")]
+			private var audioIcon:Class;
+			
+			[Embed(source="assets/skydrive/excel.png")]
+			private var excelIcon:Class;
+			
+			[Embed(source="assets/skydrive/ppt.png")]
+			private var pptIcon:Class;
+			
+			[Embed(source="assets/skydrive/video.png")]
+			private var videoIcon:Class;
+			
+			[Embed(source="assets/skydrive/word.png")]
+			private var docIcon:Class;
+			
+			[Embed(source="assets/skydrive/file.png")]
+			private var fileIcon:Class;
+			
+			[Embed(source="assets/skydrive/txt.png")]
+			private var txtIcon:Class;
+			
+			[Embed(source="assets/skydrive/pdf.png")]
+			private var pdfIcon:Class;
+			
+			[Embed(source="assets/skydrive/image.png")]
+			private var imageIcon:Class;
+			
+			[Embed(source="assets/skydrive/default.png")]
+			private var defaultIcon:Class;
+			
+			/**
+			 * 打开网盘文件
+			 * **/
+			public static const SKYDRIVE_OPEN_FILE:String = "SKYDRIVE_OPEN_FILE";
+			
+			[Bindable]
+			private var fileInfo:FileUnit = null;
+			
+			override public function set data(value:Object):void
+			{
+				fileInfo = value as FileUnit;
+				
+				if(fileInfo.isCatalog)
+					icon.source = fileIcon;
+				else
+				{
+					if(UsedFileInfo.isDoc(fileInfo.suffix))
+						icon.source = docIcon;
+					else if(UsedFileInfo.isAudio(fileInfo.suffix))
+						icon.source = audioIcon;
+					else if(UsedFileInfo.isVideo(fileInfo.suffix))
+						icon.source = videoIcon;
+					else if(UsedFileInfo.isPPT(fileInfo.suffix))
+						icon.source = pptIcon;
+					else if(UsedFileInfo.isExcel(fileInfo.suffix))
+						icon.source = excelIcon;
+					else if(UsedFileInfo.isTxt(fileInfo.suffix))
+						icon.source = txtIcon;
+					else if(UsedFileInfo.isPdf(fileInfo.suffix))
+						icon.source = pdfIcon;
+					else if(UsedFileInfo.isImage(fileInfo.suffix))
+						icon.source = imageIcon;
+					else
+						icon.source = defaultIcon;
+				}
+				
+			}
+			
+			protected function onOpenHandler(event:MouseEvent):void
+			{
+				this.owner.dispatchEvent(new LocalEvent(SKYDRIVE_OPEN_FILE,fileInfo));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Image id="icon" left="20" height="30" source="@Embed('assets/skydrive/default.png')" verticalCenter="0" />
+	
+	<s:Label x="70" top="5" width="210" height="16" backgroundAlpha="0.0" backgroundColor="#B6B4B4"
+			 color="#004A4B" fontSize="14" lineBreak="explicit" maxDisplayedLines="1" 
+			 text="{fileInfo.name}" verticalAlign="middle"/>
+	
+	<s:Label right="60" width="50" color="#004A4B" fontSize="12" text="{fileInfo.suffix}" textAlign="center"
+			 verticalAlign="middle" verticalCenter="0"/>
+	
+	<s:Label includeIn="status_uploading" right="5" width="45" color="#004A4B" fontSize="12"
+			 text="{fileInfo.statusValue}" textAlign="center" verticalAlign="middle" verticalCenter="0"/>
+	
+	<s:Label left="70" bottom="5" color="#004A4B" fontSize="12" text="{fileInfo.createTime}"/>
+	
+	
+	<s:Button includeIn="status_upload_complete" right="10" verticalCenter="0" width="40" height="25" label="{fileInfo.isCatalog ? '打开' : '引用'}" buttonMode="true"
+			  skinClass="skins.seacher.OpenButtonSkin" click="onOpenHandler(event)"
+			  />
+	
+	<s:Label includeIn="status_changing" right="5" width="45" color="#004A4B" fontSize="12"
+			 text="转换中" textAlign="center" verticalAlign="middle" verticalCenter="0"/>
+	
+	<s:Label includeIn="status_unsupport" right="5" width="45" color="#004A4B" fontSize="12"
+			 text="不支持" textAlign="center" verticalAlign="middle" verticalCenter="0"/>
+	
+	
+	<s:Button includeIn="status_changing_complete" right="10" verticalCenter="0" width="40" height="25" label="打开" buttonMode="true"
+			  skinClass="skins.seacher.OpenButtonSkin" click="onOpenHandler(event)"
+			  />
+	
+	<s:Line xFrom="20" xTo="{this.width - 40}" bottom="0">
+		<s:stroke>
+			<s:SolidColorStroke color="0xc0c9cd" />
+		</s:stroke>
+	</s:Line>
+	
+</s:ItemRenderer>

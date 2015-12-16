@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100" height="100"
+		 buttonMode="true">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var selected:Boolean = false;
+			
+			private var _normalIcon:Object;
+			
+			private var _selectedIcon:Object;
+			
+			/**
+			 * 选中状态下图标
+			 * **/
+			public function get selectedIcon():Object
+			{
+				return _selectedIcon;
+			}
+
+			/**
+			 * @private
+			 */
+			[Bindable]
+			public function set selectedIcon(value:Object):void
+			{
+				_selectedIcon = value;
+			}
+
+			/**
+			 * 普通状态下图标
+			 * **/
+			[Bindable]
+			public function get normalIcon():Object
+			{
+				return _normalIcon;
+			}
+
+			/**
+			 * @private
+			 */
+			public function set normalIcon(value:Object):void
+			{
+				_normalIcon = value;
+				
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="0" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect visible="{!selected}" left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:BitmapFill  source="{normalIcon}" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect visible="{selected}" left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:BitmapFill source="{selectedIcon}" />
+		</s:fill>
+	</s:Rect>
+	
+</s:Group>

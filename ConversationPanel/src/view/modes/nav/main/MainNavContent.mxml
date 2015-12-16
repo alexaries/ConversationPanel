@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:common="view.common.*"
+					xmlns:groups="view.modes.nav.groups.*"
+					>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<common:states>
+		
+		<!--桌面版本主讲人-->
+		<s:State name="deskChager"/>
+		<!--web版本主讲人-->
+		<s:State name="webChager"/>
+		<!--其他-->
+		<s:State name="other"/>
+		
+		<s:State name="none"/>
+	</common:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.AppConf;
+			import com.doer.modes.nav.MainNavController;
+			import com.doer.modes.nav.NavToolConf;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.NebulaPlatformType;
+			
+			import view.common.buttons.NavButton;
+			
+			private var _handedNum:int = 0;
+			
+			private var _chatNum:int = 0;
+			
+			
+			
+			[Bindable]
+			/**
+			 * 未读聊天
+			 * **/
+			public function get chatNum():int
+			{
+				return _chatNum;
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set chatNum(value:int):void
+			{
+				_chatNum = value;
+				
+				uniqueGroup.chatNum = value;
+				
+			}
+			
+			[Bindable]
+			/**
+			 * 举手人数
+			 * **/
+			public function get handedNum():int
+			{
+				return _handedNum;
+			}
+			
+			/**
+			 * @private
+			 */
+			public function set handedNum(value:int):void
+			{
+				_handedNum = value;
+				
+				uniqueGroup.handedNum = value;
+			}
+
+			
+			/**
+			 * 设置工具栏是否可用
+			 * **/
+			public function setToolsEnable(isEnable:Boolean):void
+			{
+				toolGroup.setToolsEnable(isEnable);
+			}
+			
+			override public function set currentState(value:String):void
+			{
+				super.currentState = value;
+				
+				mainGroup.currentState = value;
+				
+				uniqueGroup.currentState = value;
+			}
+			
+			/**
+			 * 设置角色权限
+			 * **/
+			override public function setParticipantTypePower(participantType:int):void
+			{
+				var nav:NavButton = null;
+				var i:int = 0;
+				
+				if(participantType == NebulaParticipantType.CHARGE)
+				{
+					if(AppConf.platform == NebulaPlatformType.BOARD)
+						this.currentState = "deskChager";
+					else
+						this.currentState = "webChager";
+				}
+				else
+					this.currentState = "other";
+				
+				if(participantType != NebulaParticipantType.VISITOR)
+				{
+					toolGroup.setParticipantTypePower(participantType);
+					
+					mainGroup.setParticipantTypePower(participantType);
+					
+					
+				}else
+				{
+					this.enabled = false;
+				}
+				
+			}
+			
+			public function reset():void
+			{
+				uniqueGroup.reset();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:HGroup id="container" gap="10"
+			  scaleY="{container.scaleX}" scaleX="{container.width > this.width ? this.width / container.width : 1}"
+			  horizontalCenter="0" verticalCenter="0">
+		
+		<groups:NavToolGroup id="toolGroup"/>
+		
+		<groups:NavMainGroup id="mainGroup"/>
+		
+		<groups:NavUniqueGroup id="uniqueGroup"/>
+		
+	</s:HGroup>
+	
+</common:ContentView>

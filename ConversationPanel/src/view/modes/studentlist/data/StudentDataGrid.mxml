@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" creationComplete="onInvalidate()"
+		 mouseOver="onMouseOver(event)"
+		 >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import mx.events.FlexEvent;
+			
+			/**
+			 * 行数
+			 * */
+			public var showRow:int = 0;
+			
+			/**
+			 * 列数
+			 * **/
+			public var showCol:int = 0;
+			
+			/**
+			 * 间距
+			 * **/
+			public var gap:Number = 5;
+			
+			/**
+			 * 边距
+			 * **/
+			public var padding:Number = 5;
+			
+			/**
+			 * 子项目被点击事件回调
+			 * **/
+			public var handler:Function = null;
+			
+			/**
+			 * 用于显示的数据
+			 * **/
+			public var data:Array = new Array();
+			
+			/**
+			 * 当前正在显示的最小行
+			 * **/
+			private var renderRow:Number = 0;
+			
+			/**
+			 * 数据项
+			 * **/
+			private var items:Vector.<StudentDataGridItem> = null;
+			
+			/**
+			 * 初始化
+			 * **/
+			protected function onInvalidate():void
+			{
+				items = new Vector.<StudentDataGridItem>();
+				
+				var w:Number = (scroller.width - padding * 2 - (showCol - 1) * gap) / showCol;
+				var h:Number = (scroller.height - padding * 2 - (showRow - 1) * gap) / showRow;
+				
+				for(var i:int = 0; i < showRow; i ++)
+				{
+					for(var j:int = 0; j < showCol; j ++)
+					{
+						var item:StudentDataGridItem = new StudentDataGridItem();
+						
+						item.width = w;
+						item.height = h;
+						
+						item.row = j;
+						item.col = i;
+						
+						item.x = padding + j * w + j * gap;
+						item.y = padding + i * h + i * gap;
+						
+						container.addElement(item);
+						
+						items.push(item);
+						
+						if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+							item.addEventListener(MouseEvent.CLICK,onItemClick);
+					}
+				}
+					
+				refresh();
+			}
+			
+			private function onItemClick(e:MouseEvent):void
+			{
+				if(handler != null)
+					handler(e.target.data.id);
+			}
+			
+			/**
+			 * 刷新
+			 * **/
+			public function refresh():void
+			{
+				if(items == null) return;
+				
+				var maxInum:int = Math.ceil(data.length / showCol);
+				
+				sort();
+				
+				if(maxInum - 3 > 0)
+				{
+					slider.visible = true;
+					slider.maximum = maxInum - 3;
+				}else
+				{
+					slider.visible = false;
+				}
+
+				var renderDatas:Array = new Array();
+				
+				for(var i:int = renderRow * 8; i < renderRow * 8 + 32; i ++)
+				{
+					if(i < data.length)
+					{
+						renderDatas.push(data[i]);
+					}else
+						break;
+				}
+				
+				for(i = 0; i < items.length; i ++)
+				{
+					items[i].visible = true;
+					
+					if(i < renderDatas.length)
+						items[i].data = renderDatas[i];
+					else
+						items[i].visible = false;
+				}
+				
+			}
+			
+			private function sort():void
+			{
+				var hand:Array = new Array();
+				var noHand:Array = new Array();
+				
+				for(var i:int = 0; i < data.length; i ++)
+				{
+					if(data[i].isRaise)
+						hand.push(data[i]);
+					else
+						noHand.push(data[i]);
+				}
+				
+				var arr:Array = new Array();
+				
+				for(i = 0; i < hand.length; i ++)
+				{
+					arr.push(hand[i]);
+				}
+				
+				for(i = 0; i < noHand.length; i ++)
+				{
+					arr.push(noHand[i]);
+				}
+				
+				data = arr;
+				
+			}
+			
+			/**
+			 * 销毁资源
+			 * **/
+			public function onDestroy():void
+			{
+				for(var i:int = 0; i < items.length; i ++)
+				{
+					items[i].removeEventListener(MouseEvent.CLICK,onItemClick);
+					
+					container.removeElement(items[i]);
+				}
+				
+				items = null;
+				
+				handler = null;
+			}
+			
+			
+			protected function onValueChange(event:Event):void
+			{
+				renderRow = slider.maximum - slider.value;
+				
+				refresh();
+			}
+			
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				stage.focus = slider;
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:VSlider id="slider" visible="false" value="100" maximum="100" snapInterval="1" change="onValueChange(event)" width="10" showDataTip="false" top="5" bottom="5" right="0" skinClass="skins.studentlist.VSliderSkin"  />
+	
+	<s:Scroller id="scroller" left="0" right="{slider.width}" top="0" bottom="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<s:Group id="container" />
+	</s:Scroller>
+	
+</s:Group>

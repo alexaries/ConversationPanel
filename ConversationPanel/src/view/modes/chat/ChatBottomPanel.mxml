@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" disabledAlpha="1" mouseOver="onMouseOver(event)" width="400" height="56" xmlns:common="view.common.*" xmlns:buttons="view.common.buttons.*">
+	<fx:Script>
+		<![CDATA[
+			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			import flash.net.sendToURL;
+			
+			import flashx.textLayout.operations.PasteOperation;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.events.TextOperationEvent;
+			
+			protected function onTextChange(event:FlexEvent):void
+			{
+				this.height = textArea.scroller.viewport.contentHeight + Number(textArea.getStyle('paddingBottom')) + Number(textArea.getStyle('paddingTop')) + 20;
+
+			}
+			
+			protected function onKeyDown(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					var str:String = textArea.text;
+	
+					var str1:String = str.substr(0,textArea.selectionAnchorPosition);
+					var str2:String = str.substr(textArea.selectionAnchorPosition,textArea.text.length);
+					
+					str = str1.substr(0,str1.length - 1) + str2;
+					
+					sendChat(str);
+				}
+			}
+			
+			protected function sendChat(str:String):void
+			{
+				if(str == null)
+				{
+					textArea.text = null;
+					return;
+				}
+				
+				var tstr:String = str.replace(new RegExp("\n","g"), "");
+				tstr = tstr.replace(new RegExp(" ","g"), "");
+				
+				if(tstr == "")
+				{
+					textArea.text = null;
+					
+					return;
+				}
+				
+				(this.parent as ChatView).sendChat(str);
+				
+				textArea.text = null;
+				
+				this.height = 56;
+				
+				
+			}
+			
+			protected function onPaste(event:Event):void
+			{
+				var str:String = textArea.text + Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
+				
+				if(str != null && str != "null")
+				{
+					str = textArea.text + str;
+					
+					str = str.substr(0,200);
+					
+					textArea.text = str;
+				
+				}
+
+			}
+			
+			protected function onChanging(event:TextOperationEvent):void
+			{
+				if(event.operation is PasteOperation)
+					event.preventDefault();
+			}
+			
+			protected function onSendHandler(event:MouseEvent):void
+			{
+				sendChat(textArea.text);
+			}
+			
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				stage.focus = textArea;
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:Rect left="0" right="0" top="0" bottom="0">
+		<s:fill>
+			<s:SolidColor color="0x9facaf" />
+		</s:fill>
+	</s:Rect>
+	
+	<buttons:NavButton click="onSendHandler(event)" width="60"  height="40" verticalCenter="0" right="10" icon="@Embed('assets/chat/send_icon.png')" overBg="@Embed('assets/chat/send_bg.png')" />
+	
+	<s:BorderContainer left="10" right="80" top="10" bottom="10" borderVisible="false" 
+					   cornerRadius="10">
+		
+		<s:TextArea id="textArea" left="8" right="8" top="0" bottom="0" borderVisible="false"
+					changing="onChanging(event)" focusAlpha="0" fontSize="14"
+					keyDown="onKeyDown(event)" maxChars="200" paste="onPaste(event)" 
+					updateComplete="onTextChange(event)" verticalAlign="middle"
+					verticalScrollPolicy="off"/>
+	</s:BorderContainer>
+	
+</s:Group>

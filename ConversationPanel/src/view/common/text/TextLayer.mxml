@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="400" xmlns:plugins="view.common.plugins.*" xmlns:text="view.common.text.*" xmlns:nav="view.modes.nav.*">
+	<fx:Script>
+		<![CDATA[
+			import com.doer.resource.ResManager;
+			
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:Label id="tip" color="0x7e8f7f" fontSize="36" horizontalCenter="0" text="点击插入文字" verticalCenter="0"/>
+
+	<s:Group id="content" left="5" right="5" top="5" bottom="5">
+		
+		<s:Rect id="rect" left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0xffffff" alpha="0.3" />
+			</s:fill>
+			<s:stroke>
+				<s:SolidColorStroke color="0xffffff"  />
+			</s:stroke>
+		</s:Rect>
+		
+	</s:Group>
+
+</s:Group>

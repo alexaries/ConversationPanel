@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"  backgroundAlpha="0"
+		 backgroundColor="#000000" borderVisible="false" xmlns:plugins="view.modes.studentlist.plugins.*" xmlns:student="view.modes.studentlist.student.*" xmlns:data="view.modes.studentlist.data.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.common.Tools;
+			import com.doer.config.ComplexConf;
+			import com.doer.utils.LocalEvent;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.complex.OnlineUnit;
+			import com.metaedu.client.messages.nebula.member.MemberBasic;
+			
+			import mx.collections.ArrayCollection;
+			
+			public var handler:Function = null;
+			
+			private var impowers:Array = null;
+			
+			public function setData(memebers:Array,impowers:Array):void
+			{
+				dataGrid.data = memebers;
+				dataGrid.refresh();
+				
+				this.impowers = impowers;
+				
+				stu1.visible = false;
+				stu1.visible = false;
+				
+				for(var i:int = 0; i < impowers.length; i ++)
+				{
+					this['stu' + (i + 1)].data = impowers[i];
+					this['stu' + (i + 1)].visible = true;
+				}
+				
+			}
+			
+			/**
+			 * 添加成员
+			 * **/
+			public function addItem(item:Object):void
+			{
+				dataGrid.data.push(item);
+				dataGrid.refresh();
+			}
+			
+			/**
+			 * 移除成员
+			 * **/
+			public function removeItemById(id:String):void
+			{
+				for(var i:int = 0; i < dataGrid.data.length; i ++)
+				{
+					if(dataGrid.data[i].id == id)
+					{
+						dataGrid.data.splice(i,1);
+						break;
+					}
+				}
+				
+				dataGrid.refresh();
+				
+			}
+			
+			private function onItemHandler(id:String):void
+			{
+				for(var i:int = 0; i < impowers.length; i ++)
+				{
+					if(id == impowers[i].id)
+					{
+						Tools.alert("该角色已被授权！");
+						return;
+					}
+						
+				}
+				
+				if(id == ComplexConf.userId)
+				{
+					Tools.alert("你不能授权自己！");
+					return;
+				}
+			
+				var member:OnlineUnit = ComplexConf.getMemberById(id);
+				
+				Tools.alert("是否授权" + member.surname + member.name + "发言？",function():void{
+					
+					handler({id : id, enable : true});
+					
+				});
+				
+			}
+			
+			/**
+			 * 授权
+			 * **/
+			public function onComplexTalk(impowers:Array):void
+			{
+				stu1.visible = false;
+				stu2.visible = false;
+				
+				for(var i:int = 0; i < impowers.length; i ++)
+				{
+					this['stu' + (i + 1)].data = impowers[i];
+					this['stu' + (i + 1)].visible = true;
+				}
+				
+				this.impowers = impowers;
+			}
+			
+			/**
+			 * 举手
+			 * **/
+			public function onRaise(id:String,enable:Boolean):void
+			{
+				for(var i:int = 0; i < dataGrid.data.length; i ++)
+				{
+					if(dataGrid.data[i].id == id)
+					{
+						dataGrid.data[i].isRaise = enable;
+						break;
+					}
+				}
+				
+				dataGrid.refresh();
+			}
+			
+			/**
+			 * 清空举手
+			 * **/
+			public function clearRaise():void
+			{
+				for(var i:int = 0; i < dataGrid.data.length; i ++)
+				{
+					dataGrid.data[i].isRaise = false;
+				}
+				
+				dataGrid.refresh();
+			}
+			
+			public function onDestroy():void
+			{
+				dataGrid.onDestroy();
+			}
+			
+			protected function onStu1Click(event:MouseEvent):void
+			{
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+				{
+					var member:OnlineUnit = ComplexConf.getMemberById(stu1.data.id);
+					
+					Tools.alert("是否取消对" + member.surname + member.name + "的授权？",function():void{
+						
+						handler({id : stu1.data.id,enable : false});
+						
+					});
+					
+				}
+				
+				
+				
+			}
+			
+			protected function onStu2Click(event:MouseEvent):void
+			{
+				if(ComplexConf.participantType == NebulaParticipantType.CHARGE)
+				{
+					var member:OnlineUnit = ComplexConf.getMemberById(stu2.data.id);
+					
+					Tools.alert("是否取消对" + member.surname + member.name + "的授权？",function():void{
+
+						handler({id : stu2.data.id,enable : false});
+					});
+					
+				}
+				
+				
+				
+				
+			}
+			
+			protected function onBtnRaiseHandler(event:MouseEvent):void
+			{
+				(this.parent as StudentListView).onBtnRaiseHandler();
+			}
+			
+			protected function onBtnClearHandler(event:MouseEvent):void
+			{
+				(this.parent as StudentListView).onBtnClearHandler();
+			}
+		
+			
+		]]>
+	</fx:Script>
+
+	<data:StudentDataGrid id="dataGrid" handler="onItemHandler" showCol="8" showRow="3" gap="20" 
+						  left="0" right="0" top="0" height="{this.height - impowerPanel.height}"  />
+	
+	<s:Group id="impowerPanel" height="{this.height / 4}" bottom="0" left="0" right="0">
+		
+		<s:Line xFrom="0" xTo="{this.width}" yFrom="0" yTo="0">
+			<s:stroke>
+				<s:SolidColorStroke color="0x495e5b" weight="2" />
+			</s:stroke>
+		</s:Line>
+		
+		<s:Label left="40" top="15" color="#FFFFFF" fontSize="18" text="已授权"/>
+
+		<s:HGroup x="166" gap="40" verticalCenter="0">
+			
+			<s:HGroup gap="40" horizontalAlign="center" verticalAlign="middle">
+				<data:StudentDataGridItem width="80" height="60" id="stu1" click="onStu1Click(event)"   />
+				<s:Line id="line1" visible="{stu2.visible}" xFrom="0" xTo="0" yFrom="0" yTo="50">
+					<s:stroke>
+						<s:SolidColorStroke color="0x495e5b" weight="1" />
+					</s:stroke>
+				</s:Line>
+				
+			</s:HGroup>
+			
+			<s:HGroup gap="40" horizontalAlign="center" verticalAlign="middle">
+				<data:StudentDataGridItem visible="false" width="80" height="60" id="stu2" click="onStu2Click(event)" />
+				
+			</s:HGroup>
+			
+		</s:HGroup>
+		
+		<s:VGroup gap="10" visible="{ComplexConf.participantType == NebulaParticipantType.CHARGE}" horizontalAlign="center" verticalAlign="middle" right="15" verticalCenter="0">
+			
+			<s:Label buttonMode="true" click="onBtnClearHandler(event)" color="#FFFFFF" fontSize="14" text="清空举手"/>
+			<s:Label buttonMode="true" click="onBtnRaiseHandler(event)"  color="#FFFFFF" fontSize="14" text="{ComplexConf.enableRaise ? '禁止举手' : '打开举手'}"/>
+		</s:VGroup>
+		
+	</s:Group>
+		
+</s:BorderContainer>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:common="view.common.*"
+					xmlns:subview="view.modes.skydrive.subview.*"
+					width="600" height="550" horizontalCenter="0" verticalCenter="0">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ModeTypes;
+			import com.doer.modes.skydrive.SkyDriveController;
+			import com.doer.modes.skydrive.SkyDriveMode;
+			import com.doer.modes.skydrive.files.FileUnit;
+			import com.doer.modes.skydrive.files.UsedFileInfo;
+			import com.doer.utils.LocalCommand;
+			import com.doer.utils.LocalCommandType;
+			import com.doer.utils.LocalEvent;
+			import com.metaedu.client.messages.nebula.NebulaFileUsingType;
+			import com.metaedu.client.messages.utils.TimeUtils;
+			
+			import flash.utils.clearInterval;
+			import flash.utils.setInterval;
+			
+			import mx.collections.ArrayCollection;
+			
+			import view.modes.skydrive.tools.FileListItem;
+			import view.modes.skydrive.tools.UsedListItem;
+			
+			/**
+			 * 是否是第二屏幕
+			 * **/
+			public var isSecondScreen:Boolean = false;
+			
+			[Bindable]
+			public var listData:ArrayCollection = null;
+			
+			
+			private var intervalId:int = -1;
+			
+			override public function invalidate():void
+			{
+				mainTitle.btnClose.addEventListener(MouseEvent.CLICK,onClose);
+				subTitle.btnBack.addEventListener(MouseEvent.CLICK,onBackHandler);
+				subTitle.btnUpload.addEventListener(MouseEvent.CLICK,onUploadHandler);
+				subTitle.btnRefresh.addEventListener(MouseEvent.CLICK,onFreshData);
+				list.addEventListener(FileListItem.SKYDRIVE_OPEN_FILE,onOpenSkyDriveFile);
+				usedContent.list.addEventListener(UsedListItem.UsedItemClick,onUsedItemHandler);
+				
+				refreshSkyDriveContent();
+				refreshUsedContent();
+				
+//				intervalId = setInterval(function():void{
+//					
+//					var myController:SkyDriveController = controller as SkyDriveController;
+//					
+//					myController.openSkydrive(myController.curFolderId,null,NebulaFileUsingType.UNKNOWN,null,true);
+//					
+//				},10000);
+				
+				super.invalidate();
+			}
+			
+			private function onUsedItemHandler(e:LocalEvent):void
+			{
+				var info:UsedFileInfo = e.param as UsedFileInfo;
+				
+				openFile(info);
+			}
+			
+			private function onClose(e:MouseEvent):void
+			{
+				(controller as SkyDriveController).onClose();
+			}
+			
+			/**
+			 * 引用文件
+			 * **/
+			private function onOpenSkyDriveFile(e:LocalEvent):void
+			{
+				var file:FileUnit = e.param as FileUnit;
+				
+				
+				(controller as SkyDriveController).openSkydrive(file.id,file.fileId,file.usingType,file.fileStatus,file.isCatalog);
+			}
+			
+			/**
+			 * 刷新数据
+			 * **/
+			private function onFreshData(e:MouseEvent):void
+			{
+				(controller as SkyDriveController).onFreshData();
+			}
+			
+			/**
+			 * 返回上一级
+			 * **/
+			private function onBackHandler(e:MouseEvent):void
+			{
+				var file:FileUnit = (controller as SkyDriveController).mode.getFileUnitById((controller as SkyDriveController).curFolderId);
+				
+				if(file != null)
+				{
+					subTitle.setUsingType(-1);
+					
+					(controller as SkyDriveController).openSkydrive(file.parentId,null,NebulaFileUsingType.UNKNOWN,null,true);
+				}
+				
+			}
+			
+			/**
+			 * 上传文件
+			 * **/
+			private function onUploadHandler(e:MouseEvent):void
+			{
+				(controller as SkyDriveController).openUpload();
+			}
+			
+			/**
+			 * 刷新网盘
+			 * **/
+			public function refreshSkyDriveContent():void
+			{
+				var value:Number = list.scroller.verticalScrollBar.value;
+				
+				var folderData:Object = (controller as SkyDriveController).getSkyDriveFileData(subTitle.usingType);
+				
+				list.dataProvider = new ArrayCollection(folderData.folderContent);
+				
+				if(folderData.folderName == null)
+				{
+					folderNamePanel.visible = false;
+					
+					list.top = 110;
+				}else
+				{
+					folderNamePanel.visible = true;
+					curFolderNameText.text = '"' + folderData.folderName + '"';
+					
+					list.top = 155;
+					
+				}
+				
+				callLater(function():void{list.scroller.verticalScrollBar.value = value;});
+			}
+			
+			/**
+			 * 刷新被引用列表
+			 * **/
+			public function refreshUsedContent():void
+			{
+				var usedVec:Vector.<UsedFileInfo> = (controller as SkyDriveController).mode.usedFileInfos;
+				
+				var arr:Array = new Array();
+				
+				for(var i:int = 0; i < usedVec.length; i ++)
+				{
+					arr.push(usedVec[i]);
+				}
+				
+				usedContent.usedListData = new ArrayCollection(arr);
+				
+			}
+			
+			/**
+			 * 打开文件
+			 * **/
+			public function openFile(info:UsedFileInfo):void
+			{
+				(controller as SkyDriveController).openSkydrive(info.id,info.fileId,info.usingType,FileUnit.status_changing_complete,false);
+				
+			}
+			
+			override public function onDestroy():void
+			{
+				mainTitle.btnClose.removeEventListener(MouseEvent.CLICK,onClose);
+				subTitle.btnBack.removeEventListener(MouseEvent.CLICK,onBackHandler);
+				subTitle.btnUpload.removeEventListener(MouseEvent.CLICK,onUploadHandler);
+				subTitle.btnRefresh.removeEventListener(MouseEvent.CLICK,onFreshData);
+				list.removeEventListener(FileListItem.SKYDRIVE_OPEN_FILE,onOpenSkyDriveFile);
+				usedContent.list.removeEventListener(UsedListItem.UsedItemClick,onUsedItemHandler);
+				
+				if(intervalId != -1)
+					clearInterval(intervalId);
+				
+				intervalId = -1;
+				
+				super.onDestroy();
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Rect left="0" right="0" top="0" bottom="0" radiusX="6" radiusY="6">
+		<s:fill>
+			<s:SolidColor color="0xffffff"/>
+		</s:fill>
+	</s:Rect>
+	
+	
+	<subview:MainTitle id="mainTitle" left="180" right="0" top="0" height="40"
+					   mouseDown="onStartDrag(event)"/>
+	
+	<subview:SubTitle id="subTitle" left="180" right="0" top="40" height="60"/>
+	
+	<s:Group id="folderNamePanel" left="180" right="0" top="100" height="45">
+		
+		<s:Image left="20" source="@Embed('assets/skydrive/file.png')" verticalCenter="0"/>
+		
+		<s:Label left="60" color="0x004A4B" fontSize="14" text="所在位置：" verticalCenter="0"/>
+		
+		<s:Label id="curFolderNameText" left="135" top="0" bottom="0" width="255" color="0x146e3f"
+				 fontSize="14" maxDisplayedLines="1" text="" verticalAlign="middle"
+				 verticalCenter="0"/>
+		
+		<s:Line bottom="0" xFrom="0" xTo="{this.width - 180}">
+			<s:stroke>
+				<s:SolidColorStroke color="0xc0c9cd"/>
+			</s:stroke>
+		</s:Line>
+		
+	</s:Group>
+	
+	<s:List id="list" left="180" right="0" top="155" bottom="10" borderVisible="false" 
+			contentBackgroundAlpha="0.0" dataProvider="{listData}"
+			itemRenderer="view.modes.skydrive.tools.FileListItem"/>
+	
+	<subview:UsedFileContent id="usedContent" left="0" top="0" bottom="0" width="180"/>
+
+	<common:filters>
+		
+		<s:GlowFilter alpha="0.5" blurX="5" blurY="5" color="0x000000" strength="2">
+			
+		</s:GlowFilter>
+		
+	</common:filters>
+	
+</common:ContentView>

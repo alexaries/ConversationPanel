@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 borderColor="0xb6b6b6" backgroundColor="0xe5e5e5" buttonMode="true"
+		 mouseOver="onMouseOver(event)" mouseOut="onMouseOut(event)"
+		 width="76" height="25">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var labelText:String = null;
+			
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				this.setStyle("borderColor",0x6bbfb3);
+				this.setStyle("backgroundColor",0x8ccbc3);
+			}
+			
+			protected function onMouseOut(event:MouseEvent):void
+			{
+				this.setStyle("borderColor",0xb6b6b6);
+				this.setStyle("backgroundColor",0xe5e5e5);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Label text="{labelText}" color="#6B6B6B" fontSize="14" horizontalCenter="0" verticalCenter="0"/>
+	
+</s:BorderContainer>

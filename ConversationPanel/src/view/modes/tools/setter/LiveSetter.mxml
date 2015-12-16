@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:common="view.common.*"
+					xmlns:plugins="view.modes.tools.plugins.*"
+					xmlns:buttons="view.common.buttons.*"
+					width="330" height="380">
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.AppConf;
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.tools.ToolController;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			private var cameraDatas:ArrayCollection = null;
+			
+			[Bindable]
+			private var micDatas:ArrayCollection = null;
+			
+			[Bindable]
+			private var cameraBoxIndex1:int = 0;
+			
+			[Bindable]
+			private var cameraBoxIndex2:int = 0;
+			
+			override public function invalidate():void
+			{
+				
+				var myController:ToolController = controller as ToolController;
+				
+				for(var i:int = 0; i < myController.cNames.length; i ++)
+				{
+					if(myController.cNames[i].index == ComplexConf.mainCameraIndex)
+						cameraBoxIndex1 = i;
+					if(myController.cNames[i].index == ComplexConf.subCameraIndex)
+						cameraBoxIndex2 = i;
+				}
+				
+				cameraDatas = new ArrayCollection(myController.cNames);
+				
+				micDatas = new ArrayCollection(myController.mNames);
+				
+			}
+			
+			protected function onBtnSubmitHandler(event:MouseEvent):void
+			{
+				(controller as ToolController).onRefreshSetterValue();
+				(controller as ToolController).onCloseSetterView();
+			}
+			
+			protected function onBtnCancelHandler(event:MouseEvent):void
+			{
+				(controller as ToolController).onCloseSetterView();
+			}
+			
+			protected function onVideo1Handler(event:MouseEvent):void
+			{
+				ComplexConf.isMainCameraOn = !ComplexConf.isMainCameraOn;
+				
+				(controller as ToolController).onRefreshVideo1Value();
+			}
+			
+			protected function onVideo2Handler(event:MouseEvent):void
+			{
+				ComplexConf.isSubCameraOn = !ComplexConf.isSubCameraOn;
+				
+				(controller as ToolController).onRefreshVideo2Value();
+			}
+			
+			protected function onAudioHandler(event:MouseEvent):void
+			{
+				ComplexConf.isMicphoneOn = !ComplexConf.isMicphoneOn;
+				
+				(controller as ToolController).onRefreshAudioValue();
+			}
+			
+			protected function cameraBox1_changeHandler(event:IndexChangeEvent):void
+			{
+				ComplexConf.mainCameraIndex = cameraBox1.selectedItem.index;
+				
+			}
+			
+			protected function cameraBox2_changeHandler(event:IndexChangeEvent):void
+			{
+				ComplexConf.subCameraIndex = cameraBox2.selectedItem.index;
+				
+			}
+			
+			protected function micBox_changeHandler(event:IndexChangeEvent):void
+			{
+				ComplexConf.micphoneIndex = micBox.selectedIndex;
+				
+			}
+			
+			protected function onVolumeChange():void
+			{
+				
+			}
+			
+			protected function btnClose_clickHandler(event:MouseEvent):void
+			{
+				(controller as ToolController).onCloseSetterView();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="-1" right="-1" top="-1" bottom="-1" radiusX="6" radiusY="6">
+		
+		<s:fill>
+			<s:SolidColor color="0xffffff"/>
+		</s:fill>
+		
+		<s:stroke>
+			<s:SolidColorStroke color="#b6b6b6"/>
+		</s:stroke>
+	</s:Rect>
+	
+	<s:Group left="0" right="0" top="0" height="30" mouseDown="onStartDrag(event)">
+		
+		<s:Rect left="0" right="0" top="0" bottom="0" radiusX="6" radiusY="6">
+			<s:fill>
+				<s:SolidColor color="0x959595"/>
+			</s:fill>
+		</s:Rect>
+		
+		<mx:LinkButton id="btnClose" right="10" top="5" width="15" height="15"  click="btnClose_clickHandler(event)"
+					   downSkin="@Embed('assets/share/icon_close.png')" 
+					   overSkin="@Embed('assets/share/icon_close.png')"
+					   upSkin="@Embed('assets/share/icon_close.png')"/>
+		
+		<s:Label text="设置" color="0xffffff" top="5" fontSize="16" left="10" />
+		
+	</s:Group>
+	
+	
+	<s:Group left="0" top="22" bottom="0" right="0">
+		
+		<s:TabBar left="0" right="0" top="0" height="40" buttonMode="true" dataProvider="{viewStack}"
+				  skinClass="skins.tools.TabBarSkin">
+			
+		</s:TabBar>
+		
+		<mx:ViewStack id="viewStack" left="0" right="0" top="45" bottom="0">
+			
+			<s:NavigatorContent width="100%" height="100%" label="音视频开关">
+				
+				<s:Group left="0" right="0" top="0" bottom="0">
+					
+					<s:layout>
+						<s:VerticalLayout gap="5"/>
+					</s:layout>
+					
+					<s:Group width="100%" height="100">
+						
+						
+						<s:VGroup left="20" horizontalAlign="center" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<buttons:ImageButton id="btnVideo1" width="60" height="60"
+												 click="onVideo1Handler(event)"
+												 normalIcon="@Embed('assets/live/icon_camera_on.png')"
+												 selected="{!ComplexConf.isMainCameraOn}"
+												 selectedIcon="@Embed('assets/live/icon_camera_off.png')"/>
+							
+							<s:Label fontSize="14" text="视频(1)"/>
+							
+						</s:VGroup>
+						
+						<s:VGroup right="20" horizontalAlign="left" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<s:Label color="#2b7d07" fontSize="14"
+									 text="{ComplexConf.isMainCameraOn ? '当前为打开状态' : '当前为关闭状态'}"/>
+							
+							<s:Label fontSize="14" text="点击右侧按钮打开或关闭视频"/>
+							
+							
+						</s:VGroup>
+						
+						<s:Line bottom="0" xFrom="0" xTo="{this.width}">
+							<s:stroke>
+								<s:SolidColorStroke color="0xc6c6c6"/>
+							</s:stroke>
+						</s:Line>
+						
+					</s:Group>
+					
+					<s:Group width="100%" height="100" enabled="{ComplexConf.isDoubleCamera}">
+						
+						
+						<s:VGroup left="20" horizontalAlign="center" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<buttons:ImageButton id="btnVideo2" width="60" height="60"
+												 click="onVideo2Handler(event)"
+												 normalIcon="@Embed('assets/live/icon_camera_on.png')"
+												 selected="{!ComplexConf.isSubCameraOn}"
+												 selectedIcon="@Embed('assets/live/icon_camera_off.png')"/>
+							
+							<s:Label fontSize="14" text="视频2"/>
+							
+						</s:VGroup>
+						
+						<s:VGroup right="20" horizontalAlign="left" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<s:Label color="#2b7d07" fontSize="14"
+									 text="{ComplexConf.isSubCameraOn ? '当前为打开状态' : '当前为关闭状态'}"/>
+							
+							<s:Label fontSize="14" text="点击右侧按钮打开或关闭视频"/>
+							
+							
+						</s:VGroup>
+						
+						<s:Line bottom="0" xFrom="0" xTo="{this.width}">
+							<s:stroke>
+								<s:SolidColorStroke color="0xc6c6c6"/>
+							</s:stroke>
+						</s:Line>
+						
+					</s:Group>
+					
+					<s:Group width="100%" height="100">
+						
+						
+						<s:VGroup left="20" horizontalAlign="center" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<buttons:ImageButton id="btnAudio" width="60" height="60"
+												 click="onAudioHandler(event)"
+												 normalIcon="@Embed('assets/live/icon_mic_on.png')"
+												 selected="{!ComplexConf.isMicphoneOn}"
+												 selectedIcon="@Embed('assets/live/icon_mic_off.png')"/>
+							
+							<s:Label fontSize="14" text="音频"/>
+							
+						</s:VGroup>
+						
+						<s:VGroup right="20" horizontalAlign="left" verticalAlign="middle"
+								  verticalCenter="0">
+							
+							<s:Label color="#2b7d07" fontSize="14"
+									 text="{ComplexConf.isMicphoneOn ? '当前为打开状态' : '当前为关闭状态'}"/>
+							
+							<s:Label fontSize="14" text="点击右侧按钮打开或关闭音频"/>
+							
+							
+						</s:VGroup>
+						
+					</s:Group>
+					
+				</s:Group>
+				
+				
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent width="100%" height="100%" label="音视频设置">
+				
+				<s:Group left="0" right="0" top="0" bottom="0">
+					
+					
+					<s:VGroup left="25" right="25" top="30" gap="10" horizontalCenter="0">
+						
+						<s:VGroup>
+							<s:Label color="0x606060" fontSize="14" text="视频输入(1)"/>
+							<s:ComboBox id="cameraBox1" width="{this.width - 50}" height="25"
+										change="cameraBox1_changeHandler(event)"
+										dataProvider="{cameraDatas}" focusEnabled="false"
+										selectedIndex="{cameraBoxIndex1}"/>
+							
+						</s:VGroup>  
+						
+						<s:VGroup>
+							<s:Label color="0x606060" fontSize="14" text="视频输入(2)"/>
+							<s:ComboBox id="cameraBox2" width="{this.width - 50}" height="25"
+										change="cameraBox2_changeHandler(event)"
+										dataProvider="{cameraDatas}"
+										enabled="{ComplexConf.isDoubleCamera}" focusEnabled="false"
+										selectedIndex="{cameraBoxIndex2}"/>
+							
+						</s:VGroup>  
+						
+						<s:VGroup>
+							<s:Label color="0x606060" fontSize="14" text="声音输入"/>
+							<s:ComboBox id="micBox" width="{this.width - 50}" height="25"
+										change="micBox_changeHandler(event)" dataProvider="{micDatas}"
+										focusEnabled="false" selectedIndex="{ComplexConf.micphoneIndex}"/>
+						</s:VGroup>
+						
+						
+						
+						<s:VGroup>
+							<s:Label color="0x606060" fontSize="14" text="调节"/>
+							<plugins:VolumeSetter id="volumeSetter" width="{this.width - 50}" height="26"
+												  handler="onVolumeChange"/>
+						</s:VGroup>
+					</s:VGroup>  
+					
+					
+					<plugins:ColorButton id="btnSubmit" bottom="30" width="76" height="26"
+										 click="onBtnSubmitHandler(event)" horizontalCenter="-50"
+										 labelText="确定"/>
+					
+					<plugins:ColorButton id="btnCancel" bottom="30" width="76" height="26"
+										 click="onBtnCancelHandler(event)" horizontalCenter="50"
+										 labelText="取消"/>
+					
+					
+					
+					
+				</s:Group>
+				
+			</s:NavigatorContent>
+			
+		</mx:ViewStack>
+		
+	</s:Group>
+	
+	
+	
+</common:ContentView>

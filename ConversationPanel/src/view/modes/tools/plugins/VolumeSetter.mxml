@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="26">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			
+			
+			public var handler:Function = null;
+			
+			protected function mic_changeHandler(event:Event):void
+			{
+				ComplexConf.micphoneVolume = mic.value;
+				ComplexConf.soundVolume = sound.value;
+				
+				//handler();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:HGroup verticalAlign="middle" horizontalAlign="center" left="5" verticalCenter="0">
+		<s:Image source="@Embed('assets/live/icon_mic2.png')" />
+		
+		<s:HSlider id="mic" width="100" buttonMode="true" change="mic_changeHandler(event)"  maximum="100" value="{ComplexConf.micphoneVolume}"  skinClass="skins.live.HSliderSkin" />
+	</s:HGroup>
+	
+	
+	<s:HGroup verticalAlign="middle" horizontalAlign="center" right="0" verticalCenter="0">
+		
+		<s:Image source="@Embed('assets/live/icon_volume2.png')" />
+		
+		<s:HSlider id="sound" width="100" change="mic_changeHandler(event)" buttonMode="true" maximum="100" value="{ComplexConf.soundVolume}" skinClass="skins.live.HSliderSkin" />
+		
+	</s:HGroup>
+
+</s:Group>

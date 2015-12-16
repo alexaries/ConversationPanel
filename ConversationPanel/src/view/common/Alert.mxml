@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 top="0" bottom="0" left="0" right="0" removedEffect="{fadeOut}"
+		 xmlns:buttons="view.common.buttons.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		
+		<s:Fade id="fadeOut" alphaFrom="1" alphaTo="0" duration="100" />
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			/**
+			 * 确定
+			 * **/
+			public static const YES:String = "yes";
+			
+			public static const CANCEL:String = "cancel";
+			
+			[Bindable]
+			public var labelText:String = null;
+			
+			protected function onYes(event:MouseEvent):void
+			{
+				dispatchEvent(new Event(YES));
+			}
+			
+			protected function onCancel(event:MouseEvent):void
+			{
+				dispatchEvent(new Event(CANCEL));
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Rect top="0" bottom="0" right="0" left="0">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="0.3" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group width="320"
+			 height="{label.height + label.y + 50 > 150 ? label.height + label.y + 50 : 150}" 
+			 horizontalCenter="0" verticalCenter="0">
+		
+		<s:Rect top="0" bottom="0" right="0" left="0" radiusX="4" radiusY="4">
+			<s:fill>
+				<s:SolidColor color="0xc2cfd5" />
+			</s:fill>
+		</s:Rect>
+		
+		<mx:LinkButton click="onYes(event)" bottom="20" width="74" height="22" label="确定" 
+								  downSkin="@Embed('assets/common/icon_alertbtn1.png')"  horizontalCenter="-50"
+								  overSkin="@Embed('assets/common/icon_alertbtn1.png')"
+								  upSkin="@Embed('assets/common/icon_alertbtn1.png')"/>
+		
+		<mx:LinkButton click="onCancel(event)" bottom="20" width="74" height="22" label="取消"
+								  downSkin="@Embed('assets/common/icon_alertbtn2.png')"  horizontalCenter="50"
+								  overSkin="@Embed('assets/common/icon_alertbtn2.png')"
+								  upSkin="@Embed('assets/common/icon_alertbtn1.png')"/>
+		
+		<s:Label id="label" top="20" left="20" right="20" bottom="50" fontSize="14" text="{labelText}"
+				 textAlign="center" verticalAlign="middle"/>
+		
+	</s:Group>
+	
+	
+	
+</s:Group>

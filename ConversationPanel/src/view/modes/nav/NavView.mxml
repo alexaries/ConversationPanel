@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"   xmlns:common="view.common.*"  minWidth="1000"
+				   height="{mainContent.container.scaleY == 1 ? 60 : 60 * mainContent.container.scaleY}" xmlns:nav="view.modes.nav.*" xmlns:buttons="view.common.buttons.*"
+				   xmlns:text="view.common.text.*" xmlns:tool="view.modes.nav.tool.*"
+				   xmlns:groups="view.modes.nav.groups.*" xmlns:main="view.modes.nav.main.*" 
+				   xmlns:sub="view.modes.nav.sub.*"
+				   >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.nav.MainNavController;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaCharacterType;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			
+			import mx.geom.RoundedRectangle;
+			
+			import spark.effects.easing.Power;
+			
+			import view.common.buttons.NavButton;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			public var subContentWidth:Number = 0;
+			
+			
+			public function reset():void
+			{
+				mainContent.reset();
+				
+				subContent.reset();
+			}
+			
+		]]>
+	</fx:Script>
+
+	<s:Rect left="0" right="0" top="0" bottom="0" >
+		<s:fill>
+			<s:BitmapFill source="{resManager.getBitmap('navBackground')}" smooth="true" fillMode="scale">
+				
+			</s:BitmapFill>
+		</s:fill>
+	</s:Rect>
+	
+	<main:MainNavContent left="0" id="mainContent" width="{this.width - subContent.width}" height="100%"  />
+		
+	<sub:SubNavContent  right="0" id="subContent" cscale="{mainContent.container.scaleY}" visible="{ComplexConf.isClipScreen}"
+					   width="{subContentWidth}" height="100%"  />
+		
+</common:ContentView>

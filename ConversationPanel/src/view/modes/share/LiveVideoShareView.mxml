@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<common:ContentView xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:common="view.common.*" left="0" right="0" top="0" bottom="0" 
+					xmlns:share="view.modes.share.*"  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.modes.live.LiveController;
+			import com.doer.modes.live.tools.LiveVideoInfo;
+			import com.doer.modes.live.video.LiveVideoRender;
+			import com.doer.modes.share.LiveVideoShareController;
+			import com.doer.modes.share.SubLiveVideoShareController;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.strong.rtmp.RtmpSeparateRender;
+			
+			import mx.events.ResizeEvent;
+			
+			public var render:LiveVideoRender = null;
+			
+			override public function invalidate():void
+			{
+				var shareController:LiveVideoShareController = controller as LiveVideoShareController;
+				
+				shareTool.liveVideoInfo = shareController.getLiveVideoInfo();
+				
+				shareTool.invalidate();
+				
+				render = shareController.getRender(shareController.active,shareController.liveIndex == 2);
+				
+				if(render != null)
+				{
+					var isIn:Boolean = false;
+					
+					for each(var info:LiveVideoInfo in shareTool.liveVideoInfo )
+					{
+						if(render.videoInfo != null && info.id == render.videoInfo.id && info.isDoubleCamera == render.videoInfo.isDoubleCamera)
+						{
+							isIn = true;
+							break;
+						}
+					}
+					
+					if(!isIn)
+						removeRender();
+					else
+					{
+						setRender(render);
+						shareTool.setSelectedById(render.videoInfo.id,render.videoInfo.isDoubleCamera);
+					}
+				}
+				
+				super.invalidate();
+			}
+			
+			public function onChoseVideo(videoInfo:LiveVideoInfo):void
+			{
+				(controller as LiveVideoShareController).sendShareVideoInfo(videoInfo);
+			}
+			
+			public function setRender(render:LiveVideoRender):void
+			{
+				
+				if(this.render != render && this.render != null)
+				{
+					this.render.restore();
+				}
+				
+				this.render = render;
+				
+				if(this.render != null)
+				{
+					render.setShare(content,shareTool.rendMode);
+					
+					shareTool.setSelectedById(render.videoInfo.id,render.videoInfo.isDoubleCamera);
+				}
+				
+			}
+			
+			public function removeRender():void
+			{
+				if(this.render != null)
+					render.restore();
+				
+				this.render = null;
+				
+				shareTool.setSelectedById(null,false);
+			}
+			
+			protected function onContent1Resize(event:ResizeEvent):void
+			{
+				if(render != null)
+					render.resizeContainer();
+			}
+			
+			protected function clickHandler(event:MouseEvent):void
+			{
+				shareTool.visible = !shareTool.visible;
+			}
+			
+			override public function onDestroy():void
+			{
+				removeRender();
+				
+				super.onDestroy();
+				
+			}
+			
+			private function onChangeFillMode():void
+			{
+				if(this.render != null)
+				{
+					render.setShare(content,shareTool.rendMode);
+					
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Scroller click="clickHandler(event)" left="0" right="0" top="0" bottom="0"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		
+		<s:Group left="0" right="0" top="0" bottom="0">
+			
+			<s:Group left="0" right="0" top="0" bottom="0"  >
+				
+				<s:Rect left="0" right="0" top="0" bottom="0">
+					<s:fill>
+						<s:SolidColor color="0x000000" alpha="0.8" />
+					</s:fill>
+				</s:Rect>
+				
+			</s:Group>
+			
+			<s:Image source="@Embed('assets/share/icon_camera.png')"  horizontalCenter="0" verticalCenter="0" />
+			
+			
+			<mx:UIComponent id="content" resize="onContent1Resize(event)" left="0" right="0" top="0" bottom="0" />
+			
+		</s:Group>
+		
+	</s:Scroller>
+
+	<share:LiveShareTool handler="onChangeFillMode" id="shareTool" visible="false"  horizontalCenter="0" verticalCenter="0" />
+	
+	
+</common:ContentView>

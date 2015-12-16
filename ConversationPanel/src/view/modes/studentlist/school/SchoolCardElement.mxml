@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" gap="15" verticalAlign="middle" horizontalAlign="center" 
+		 xmlns:plugins="view.modes.studentlist.plugins.*" xmlns:school="view.modes.studentlist.school.*" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			public function invalidateByData(data:Object):void
+			{
+				card.label.text = data.orzName;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<school:SchoolCard id="card" />
+	
+	<s:Line xFrom="0" xTo="0" yFrom="0" yTo="28">
+		<s:stroke>
+			<s:SolidColorStroke color="0x495e5b" weight="1" />
+		</s:stroke>
+	</s:Line>
+</s:HGroup>

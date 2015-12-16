@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:buttons="view.common.buttons.*"
+		 xmlns:tool="view.modes.nav.tool.*"
+		 width="{content.width}" height="{content.height}">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:states>
+		<!--桌面版本主讲人-->
+		<s:State name="deskChager"/>
+		<!--web版本主讲人-->
+		<s:State name="webChager"/>
+		<!--其他-->
+		<s:State name="other"/>
+		
+		<s:State name="none"/>
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.doer.config.ComplexConf;
+			import com.doer.resource.ResManager;
+			import com.metaedu.client.messages.nebula.NebulaParticipantType;
+			import com.metaedu.client.messages.nebula.NebulaScreenType;
+			
+			[Bindable]
+			private var resManager:ResManager = ResManager.getInstance();
+			
+			[Bindable]
+			public var isSubScreenView:Boolean = false;
+			
+			/**
+			 * 设置角色权限
+			 * **/
+			public function setParticipantTypePower(participantType:int):void
+			{
+				for(var i:int = 0; i < mainNavContainer.numElements; i ++)
+				{
+					var nav:NavButton = mainNavContainer.getElementAt(i) as NavButton;
+					nav.enabled = participantType == NebulaParticipantType.CHARGE;
+				}
+				
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:BorderContainer id="content" width="{mainNavContainer.width + 20}"
+					   height="{mainNavContainer.height + 10}" backgroundAlpha="0.2"
+					   borderAlpha="0.7" borderColor="#FFFFFF" cornerRadius="5">
+		
+		<s:HGroup id="mainNavContainer" gap="10" horizontalAlign="center" horizontalCenter="0"
+				  verticalAlign="middle" verticalCenter="0">
+			
+			<!--互斥主界面-->
+			<buttons:NavButton id="btnBlackbord" width="45" height="45" groupName="navMenu"
+							   icon="{resManager.getBitmap('navBlackbord')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{!isSubScreenView ? ComplexConf.activeScreen == NebulaScreenType.BOARD : ComplexConf.subActiveScreen == NebulaScreenType.BOARD}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="黑板"/>
+			
+			<buttons:NavButton id="btnCourse" width="45" height="45" groupName="navMenu"
+							   icon="{resManager.getBitmap('navCourseware')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{!isSubScreenView ? ComplexConf.activeScreen == NebulaScreenType.DOCUMENT : ComplexConf.subActiveScreen == NebulaScreenType.DOCUMENT}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="课件"/>
+			
+			<buttons:NavButton id="btnMedia" width="45" height="45" groupName="navMenu"
+							   icon="{resManager.getBitmap('navMedia')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{!isSubScreenView ? ComplexConf.activeScreen == NebulaScreenType.MULTIMEDIA : ComplexConf.subActiveScreen == NebulaScreenType.MULTIMEDIA}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="多媒体"/>
+			
+			<buttons:NavButton id="btnCamera" width="45" height="45" groupName="navMenu"
+							   icon="@Embed('assets/nav/icon_camera.png')"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{!isSubScreenView ? ComplexConf.activeScreen == NebulaScreenType.LIVE : ComplexConf.subActiveScreen == NebulaScreenType.LIVE}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="视频来源"/>
+			
+			<buttons:NavButton includeIn="deskChager" id="btnSyn" width="45" height="45" groupName="navMenu"
+							   icon="@Embed('assets/nav/icon_eco.png')"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selected="{!isSubScreenView ? ComplexConf.activeScreen == NebulaScreenType.DESKTOP : ComplexConf.subActiveScreen == NebulaScreenType.DESKTOP}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="桌面同步"/>
+			
+			
+			<buttons:NavButton id="btnResource" includeIn="deskChager,webChager" width="45" height="45"
+							   groupName="unique" icon="{resManager.getBitmap('navResourceSeach')}"
+							   overBg="{resManager.getBitmap('navBtnBg1')}"
+							   selectedBg="{resManager.getBitmap('navBtnBg')}" tips="网盘资源"/>
+			
+			
+		</s:HGroup>
+		
+	</s:BorderContainer>
+	
+</s:Group>
